@@ -540,57 +540,13 @@ body::before{
 
 <script>
 // ══════════════════════════════════════════════════════════════
-// CONFIGURAÇÃO — GROQ DIRETO NO BROWSER
+// CONFIGURAÇÃO -- GROQ DIRETO NO BROWSER
 // ══════════════════════════════════════════════════════════════
 const GROQ_KEY = 'gsk_demo_placeholder'; // ← substitua pela sua chave Groq gratuita
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
 
-// ── DADOS DO SALÃO (editáveis por cliente) ──────────────────
-const SALAO = {
-  nome: 'Salão Bella Arte',
-  assistente: 'Bia',
-  endereco: 'Rua das Flores, 123 — Centro',
-  horario: 'Segunda a sexta: 9h às 19h | Sábado: 8h às 18h',
-  whatsapp_humano: '(51) 99999-9999',
-  profissionais: [
-    { nome: 'Ana', especialidade: 'Coloração e mechas' },
-    { nome: 'Camila', especialidade: 'Cortes e tratamentos capilares' },
-    { nome: 'Julia', especialidade: 'Manicure e pedicure' },
-    { nome: 'Patricia', especialidade: 'Estética e design de sobrancelha' },
-  ],
-  servicos: `
-COLORAÇÃO:
-• Coloração simples: R$ 120–180
-• Mechas/Luzes: R$ 180–280
-• Balayage: R$ 250–350
 
-TRATAMENTOS:
-• Progressiva: R$ 180–280
-• Botox capilar: R$ 120–160
-• Hidratação: R$ 80–120
-
-CORTE E FINALIZAÇÃO:
-• Corte feminino: R$ 60–90
-• Escova: R$ 45–70
-
-UNHAS:
-• Manicure: R$ 35
-• Pedicure: R$ 40
-• Gel/Fibra: R$ 80–120
-
-ESTÉTICA:
-• Design de sobrancelha: R$ 30
-• Cílios fio a fio: R$ 120–180
-• Limpeza de pele: R$ 90–130
-  `.trim(),
-
-  // Agenda simulada — próximos 7 dias com horários disponíveis
-  horariosLivres: gerarHorariosDemo(),
-  agendamentosCliente: [], // vazio — cliente novo
-};
-
-// ── GERA HORÁRIOS DEMO DINAMICAMENTE ──────────────────────
 function gerarHorariosDemo() {
   const horarios = [];
   const profissionais = ['Ana', 'Camila', 'Julia', 'Patricia'];
@@ -611,6 +567,51 @@ function gerarHorariosDemo() {
   return horarios;
 }
 
+// ── DADOS DO SALÃO (editáveis por cliente) ──────────────────
+const SALAO = {
+  nome: 'Salão Bella Arte',
+  assistente: 'Bia',
+  endereco: 'Rua das Flores, 123 -- Centro',
+  horario: 'Segunda a sexta: 9h às 19h | Sábado: 8h às 18h',
+  whatsapp_humano: '(51) 99999-9999',
+  profissionais: [
+    { nome: 'Ana', especialidade: 'Coloração e mechas' },
+    { nome: 'Camila', especialidade: 'Cortes e tratamentos capilares' },
+    { nome: 'Julia', especialidade: 'Manicure e pedicure' },
+    { nome: 'Patricia', especialidade: 'Estética e design de sobrancelha' },
+  ],
+  servicos: `
+COLORAÇÃO:
+• Coloração simples: R$ 120-180
+• Mechas/Luzes: R$ 180-280
+• Balayage: R$ 250-350
+
+TRATAMENTOS:
+• Progressiva: R$ 180-280
+• Botox capilar: R$ 120-160
+• Hidratação: R$ 80-120
+
+CORTE E FINALIZAÇÃO:
+• Corte feminino: R$ 60-90
+• Escova: R$ 45-70
+
+UNHAS:
+• Manicure: R$ 35
+• Pedicure: R$ 40
+• Gel/Fibra: R$ 80-120
+
+ESTÉTICA:
+• Design de sobrancelha: R$ 30
+• Cílios fio a fio: R$ 120-180
+• Limpeza de pele: R$ 90-130
+  `.trim(),
+
+  // Agenda simulada -- próximos 7 dias com horários disponíveis
+  horariosLivres: gerarHorariosDemo(),
+  agendamentosCliente: [], // vazio -- cliente novo
+};
+
+// ── GERA HORÁRIOS DEMO DINAMICAMENTE ──────────────────────
 // ── ESTADO ────────────────────────────────────────────────
 let historico = []; // mensagens da conversa
 let enviando = false;
@@ -622,7 +623,7 @@ function buildSystemPrompt() {
     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
   });
 
-  const profStr = SALAO.profissionais.map(p => `• ${p.nome} — ${p.especialidade}`).join('\n');
+  const profStr = SALAO.profissionais.map(p => `• ${p.nome} -- ${p.especialidade}`).join('\n');
 
   // Agrupa horários por dia para o prompt
   const porDia = {};
@@ -638,7 +639,7 @@ function buildSystemPrompt() {
 
   const agendStr = agendamentosSimulados.length
     ? agendamentosSimulados.map(a =>
-        `• ${a.data} às ${a.hora} com ${a.profissional} — ${a.servico}`
+        `• ${a.data} às ${a.hora} com ${a.profissional} -- ${a.servico}`
       ).join('\n')
     : 'Nenhum agendamento registrado nesta sessão.';
 
@@ -648,7 +649,7 @@ Hoje é ${hoje}.
 SEU PERFIL:
 - Nome: ${SALAO.assistente}
 - Personalidade: simpática, acolhedora, eficiente e direta
-- Tom: informal mas profissional — use emojis com moderação
+- Tom: informal mas profissional -- use emojis com moderação
 - Idioma: sempre português brasileiro
 
 INFORMAÇÕES DO SALÃO:
@@ -675,12 +676,12 @@ REGRAS DE ATENDIMENTO:
 3. Para transferir ao humano: diga que vai chamar a responsável e forneça o WhatsApp humano.
 4. Nunca invente horários que não estejam na lista de horários livres.
 5. Se o cliente pedir um horário indisponível, ofereça alternativas da lista.
-6. Respostas curtas e diretas — máximo 4 linhas quando possível.
+6. Respostas curtas e diretas -- máximo 4 linhas quando possível.
 7. Não repita informações desnecessárias em cada mensagem.
 8. Quando confirmar um agendamento, inclua um resumo: data, hora, profissional e serviço.
 9. Finalize agendamentos com: "Está confirmado! ✅ Qualquer dúvida é só chamar. 😊"
 
-ESTA É UMA DEMONSTRAÇÃO — simule o comportamento real do sistema como se fosse produção.`;
+ESTA É UMA DEMONSTRAÇÃO -- simule o comportamento real do sistema como se fosse produção.`;
 }
 
 // ── CHAMAR GROQ API ───────────────────────────────────────
@@ -824,7 +825,7 @@ function processarEstado(t, original) {
   if (/cancel/i.test(t)) {
     FB.estado = 'cancelando';
     if (FB.agendamentos.length > 0) {
-      const ags = FB.agendamentos.map((a,i) => (i+1) + '. ' + a.data + ' às ' + a.hora + ' com ' + a.profissional + ' — ' + a.servico).join('\n');
+      const ags = FB.agendamentos.map((a,i) => (i+1) + '. ' + a.data + ' às ' + a.hora + ' com ' + a.profissional + ' -- ' + a.servico).join('\n');
       return 'Claro! Qual agendamento você quer cancelar?\n\n' + ags + '\n\nDigite o número. 😊';
     }
     return 'Não encontrei agendamentos nesta conversa. Para cancelar um horário já marcado, entre em contato pelo nosso WhatsApp. 😊';
@@ -849,12 +850,12 @@ function processarEstado(t, original) {
 
   // Preços
   if (/preço|valor|custa|quanto|tabela/i.test(t) && !/agendar|marcar/i.test(t)) {
-    if (/corte/i.test(t)) return '✂️ Corte feminino: *R$ 60–90*\n\nQuer agendar com a Camila? 😊';
-    if (/color|mech|luzes|balayage/i.test(t)) return '🎨 Coloração com a Ana:\n\n• Coloração simples: *R$ 120–180*\n• Mechas/Luzes: *R$ 180–280*\n• Balayage: *R$ 250–350*\n\nQuer agendar? 😊';
-    if (/progressiva|botox|hidrat|tratamento/i.test(t)) return '💇 Tratamentos com a Camila:\n\n• Progressiva: *R$ 180–280*\n• Botox capilar: *R$ 120–160*\n• Hidratação: *R$ 80–120*\n\nQuer agendar? 😊';
-    if (/manicure|pedicure|gel|fibra|unha/i.test(t)) return '💅 Unhas com a Julia:\n\n• Manicure: *R$ 35*\n• Pedicure: *R$ 40*\n• Gel/Fibra: *R$ 80–120*\n\nQuer agendar? 😊';
-    if (/sobrancelha|cílio|estétic|limpeza/i.test(t)) return '✨ Estética com a Patricia:\n\n• Design de sobrancelha: *R$ 30*\n• Cílios fio a fio: *R$ 120–180*\n• Limpeza de pele: *R$ 90–130*\n\nQuer agendar? 😊';
-    return 'Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60–90\n🎨 *Coloração:* R$ 120–180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180–280\n✨ *Sobrancelha:* R$ 30\n\nQuer saber sobre algum serviço específico? 😊';
+    if (/corte/i.test(t)) return '✂️ Corte feminino: *R$ 60-90*\n\nQuer agendar com a Camila? 😊';
+    if (/color|mech|luzes|balayage/i.test(t)) return '🎨 Coloração com a Ana:\n\n• Coloração simples: *R$ 120-180*\n• Mechas/Luzes: *R$ 180-280*\n• Balayage: *R$ 250-350*\n\nQuer agendar? 😊';
+    if (/progressiva|botox|hidrat|tratamento/i.test(t)) return '💇 Tratamentos com a Camila:\n\n• Progressiva: *R$ 180-280*\n• Botox capilar: *R$ 120-160*\n• Hidratação: *R$ 80-120*\n\nQuer agendar? 😊';
+    if (/manicure|pedicure|gel|fibra|unha/i.test(t)) return '💅 Unhas com a Julia:\n\n• Manicure: *R$ 35*\n• Pedicure: *R$ 40*\n• Gel/Fibra: *R$ 80-120*\n\nQuer agendar? 😊';
+    if (/sobrancelha|cílio|estétic|limpeza/i.test(t)) return '✨ Estética com a Patricia:\n\n• Design de sobrancelha: *R$ 30*\n• Cílios fio a fio: *R$ 120-180*\n• Limpeza de pele: *R$ 90-130*\n\nQuer agendar? 😊';
+    return 'Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60-90\n🎨 *Coloração:* R$ 120-180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180-280\n✨ *Sobrancelha:* R$ 30\n\nQuer saber sobre algum serviço específico? 😊';
   }
 
   // Endereço
@@ -902,7 +903,7 @@ function processarEstado(t, original) {
     else if (/sábado/i.test(t)) FB.data = proximoDia(6);
     else { const n = parseInt(t); if (!isNaN(n) && n>=1 && n<=7) FB.data = diaStr(n); }
     if (FB.data) { FB.estado = 'escolhendo_hora'; return respHorariosDia(); }
-    return 'Me diz o dia — pode ser amanhã, segunda, terça, quarta, quinta, sexta ou sábado. 😊';
+    return 'Me diz o dia -- pode ser amanhã, segunda, terça, quarta, quinta, sexta ou sábado. 😊';
   }
 
   // Escolhendo hora
@@ -1003,34 +1004,7 @@ async function enviar() {
   }
 }
 
-// ── FALLBACK — responde sem API (para demo sem chave) ─────
-async function respostaFallback(texto) {
-  const t = texto.toLowerCase();
-  if (/agen|marcar|horário|disponível/i.test(t)) {
-    const amanha = new Date(); amanha.setDate(amanha.getDate()+1);
-    const dStr = amanha.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
-    return `Claro! Temos horários disponíveis para ${dStr}:\n\n📅 *Ana (coloração):* 09:00, 10:00, 14:30\n📅 *Camila (cortes):* 11:00, 13:30, 15:30\n📅 *Julia (unhas):* 09:00, 10:00, 14:30, 16:30\n\nQual horário e serviço você prefere? 😊`;
-  }
-  if (/preço|valor|custa|quanto/i.test(t)) {
-    return `Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60–90\n🎨 *Coloração:* R$ 120–180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180–280\n✨ *Botox capilar:* R$ 120–160\n\nQuer saber sobre algum serviço específico? 😊`;
-  }
-  if (/horário|funciona|abre|fecha/i.test(t)) {
-    return `⏰ Nosso horário de atendimento:\n\n*Segunda a sexta:* 9h às 19h\n*Sábado:* 8h às 18h\n*Domingo:* Fechado\n\nPosso agendar um horário para você? 😊`;
-  }
-  if (/cancel/i.test(t)) {
-    return `Tudo bem! Para cancelar, me diz qual agendamento — a data e o horário — que eu cancelo agora mesmo. 😊`;
-  }
-  if (/endereço|onde|localiza|fica/i.test(t)) {
-    return `📍 Estamos na *${SALAO.endereco}*!\n\nHorário: ${SALAO.horario}\n\nQuer agendar uma visita? 😊`;
-  }
-  if (/sobrancelha|cílio|estétic/i.test(t)) {
-    return `Sim! Nossa especialista *Patricia* cuida de:\n\n✨ Design de sobrancelha: *R$ 30*\n👁️ Cílios fio a fio: *R$ 120–180*\n🌿 Limpeza de pele: *R$ 90–130*\n\nQuer agendar com a Patricia? 😊`;
-  }
-  if (/progressiva|botox|hidrat/i.test(t)) {
-    return `Nossa *Camila* é especialista em tratamentos!\n\n💎 Progressiva: *R$ 180–280*\n✨ Botox capilar: *R$ 120–160*\n💧 Hidratação: *R$ 80–120*\n\nQuer saber mais ou agendar? 😊`;
-  }
-  return `Olá! 😊 Posso te ajudar com:\n\n📅 *Agendamentos* — marcar ou cancelar horários\n💰 *Preços* — serviços e valores\n🕐 *Horários* — funcionamento do salão\n📍 *Localização* — onde nos encontrar\n\nSobre o que você quer saber?`;
-}
+// Fallback contextual implementado acima (processarEstado)
 
 // ── UI HELPERS ────────────────────────────────────────────
 function adicionarMensagem(texto, tipo) {
@@ -1097,7 +1071,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (GROQ_KEY === 'gsk_demo_placeholder' || !GROQ_KEY.startsWith('gsk_')) {
     document.getElementById('conn-label').textContent = 'Modo demo · respostas locais';
     document.getElementById('conn-status-label').innerHTML =
-      '<span style="color:#fbbf24">●</span> <span style="color:#666">Modo demonstração — respostas locais</span>';
+      '<span style="color:#fbbf24">●</span> <span style="color:#666">Modo demonstração -- respostas locais</span>';
   }
 });
 </script>
