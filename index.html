@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<title>Salão Bella Arte — Atendimento com IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+
+body{
+  font-family:'Nunito',sans-serif;
+  background:#0a0a0a;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  position:relative;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(212,175,55,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(212,175,55,.07) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+.container{
+  display:flex;gap:36px;
+  align-items:flex-start;
+  max-width:920px;width:100%;
+  position:relative;z-index:1;
+}
+
+/* ── PAINEL INFO ── */
+.info-panel{
+  flex:1;min-width:220px;max-width:270px;
+  display:flex;flex-direction:column;gap:12px;
+}
+
+.logo-area{margin-bottom:4px}
+.logo-icon{
+  width:54px;height:54px;
+  background:linear-gradient(135deg,#d4af37,#f5d76e);
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:12px;
+  box-shadow:0 8px 24px rgba(212,175,55,.3);
+}
+.logo-name{font-size:21px;font-weight:800;color:#fff;line-height:1.2}
+.logo-sub{font-size:12px;color:#666;margin-top:3px}
+
+.info-badge{
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:14px;
+}
+.info-badge-label{
+  font-size:9px;text-transform:uppercase;letter-spacing:.12em;
+  color:#555;margin-bottom:5px;font-weight:700;
+}
+.info-badge-value{font-size:12px;color:#bbb;line-height:1.55}
+.info-badge-value strong{color:#d4af37}
+
+.demo-hint{
+  background:rgba(212,175,55,.07);
+  border:1px solid rgba(212,175,55,.18);
+  border-radius:12px;padding:13px 15px;
+}
+.demo-hint-title{
+  font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.08em;color:#d4af37;margin-bottom:8px;
+}
+.demo-hint-item{
+  font-size:11px;color:#999;padding:3px 0;
+  display:flex;align-items:flex-start;gap:6px;line-height:1.4;
+  cursor:pointer;transition:color .15s;
+}
+.demo-hint-item:hover{color:#d4af37}
+.demo-hint-item::before{content:'→';color:#d4af37;flex-shrink:0;margin-top:1px}
+
+.powered{font-size:10px;color:#444;text-align:center;margin-top:4px}
+.powered span{color:#4ade80}
+
+/* CTA CONTATO */
+.cta-contato{
+  background:linear-gradient(135deg,rgba(212,175,55,.12),rgba(212,175,55,.06));
+  border:1px solid rgba(212,175,55,.25);
+  border-radius:12px;padding:14px;
+  text-align:center;margin-top:4px;
+}
+.cta-contato-txt{font-size:11px;color:#999;margin-bottom:10px;line-height:1.5}
+.cta-contato-txt strong{color:#d4af37;display:block;font-size:12px;margin-bottom:4px}
+.btn-cta{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#25d366;color:#fff;
+  border:none;border-radius:8px;
+  padding:9px 16px;
+  font-family:'Nunito',sans-serif;
+  font-size:12px;font-weight:700;
+  cursor:pointer;text-decoration:none;
+  transition:opacity .15s,transform .1s;
+}
+.btn-cta:active{transform:scale(.96)}
+.btn-cta:hover{opacity:.88}
+.btn-cta svg{width:14px;height:14px;fill:#fff}
+
+/* ── PHONE WRAP ── */
+.phone-wrap{
+  display:flex;flex-direction:column;
+  align-items:center;gap:14px;
+  flex-shrink:0;
+}
+
+.phone{
+  width:358px;
+  background:#111;
+  border-radius:46px;
+  border:2px solid #1f1f1f;
+  box-shadow:
+    0 0 0 1px #2a2a2a,
+    0 40px 80px rgba(0,0,0,.85),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  overflow:hidden;position:relative;
+}
+
+.phone::before{
+  content:'';position:absolute;
+  top:0;left:50%;transform:translateX(-50%);
+  width:96px;height:26px;
+  background:#111;
+  border-radius:0 0 18px 18px;
+  z-index:100;
+}
+
+/* STATUS BAR */
+.status-bar{
+  background:#075e54;
+  height:42px;
+  display:flex;align-items:flex-end;
+  padding:0 20px 8px;
+  justify-content:space-between;
+  position:relative;z-index:10;
+}
+.status-time{font-size:12px;font-weight:700;color:#fff}
+.status-icons{display:flex;gap:4px;align-items:center}
+
+/* CHAT HEADER */
+.chat-header{
+  background:#075e54;
+  padding:7px 14px 13px;
+  display:flex;align-items:center;gap:11px;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.chat-back{color:#fff;font-size:20px;opacity:.8}
+.chat-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#d4af37,#f5d76e);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.chat-info{flex:1}
+.chat-name{font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.chat-status{font-size:11px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:4px}
+.online-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#4ade80;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* CHAT BODY */
+.chat-body{
+  background:#0d1117;
+  background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.012) 1px,transparent 0);
+  background-size:20px 20px;
+  height:474px;
+  overflow-y:auto;
+  padding:10px 10px 6px;
+  display:flex;flex-direction:column;gap:3px;
+  scroll-behavior:smooth;
+}
+.chat-body::-webkit-scrollbar{width:3px}
+.chat-body::-webkit-scrollbar-track{background:transparent}
+.chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+
+.date-sep{text-align:center;margin:6px 0}
+.date-sep span{
+  background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.45);
+  font-size:10px;padding:3px 11px;border-radius:10px;
+}
+
+.msg{display:flex;flex-direction:column;max-width:80%;animation:msgIn .2s ease-out}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.bot{align-self:flex-start;align-items:flex-start}
+
+.bubble{
+  padding:8px 12px;border-radius:18px;
+  font-size:13px;line-height:1.55;
+  position:relative;word-break:break-word;
+}
+.msg.user .bubble{
+  background:#005c4b;color:#e9f5f3;
+  border-bottom-right-radius:4px;
+}
+.msg.bot .bubble{
+  background:#1e2530;color:#e5e5e5;
+  border-bottom-left-radius:4px;
+  border:1px solid rgba(255,255,255,.055);
+}
+.msg-time{
+  font-size:10px;color:rgba(255,255,255,.3);
+  margin-top:2px;padding:0 4px;
+  display:flex;align-items:center;gap:3px;
+}
+.msg.user .msg-time::after{content:'✓✓';color:#4fc3f7;font-size:10px}
+
+/* TYPING */
+.typing-indicator{
+  align-self:flex-start;
+  background:#1e2530;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:18px;border-bottom-left-radius:4px;
+  padding:10px 14px;
+  display:none;gap:4px;align-items:center;
+}
+.typing-indicator.show{display:flex}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#d4af37;animation:typingDot 1.2s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{
+  0%,60%,100%{transform:translateY(0);opacity:.35}
+  30%{transform:translateY(-5px);opacity:1}
+}
+
+/* SUGGESTIONS */
+.suggestions{
+  display:flex;flex-wrap:wrap;gap:5px;
+  padding:6px 10px 5px;background:#0d1117;
+}
+.sug-btn{
+  background:rgba(212,175,55,.09);
+  border:1px solid rgba(212,175,55,.22);
+  color:#d4af37;font-size:11px;
+  font-family:'Nunito',sans-serif;
+  padding:4px 11px;border-radius:20px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.sug-btn:hover{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.4)}
+
+/* FOOTER */
+.chat-footer{
+  background:#111;padding:7px 9px;
+  display:flex;align-items:center;gap:7px;
+  border-top:1px solid rgba(255,255,255,.04);
+}
+.chat-input-wrap{
+  flex:1;background:#1e2530;
+  border-radius:24px;
+  display:flex;align-items:center;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.055);
+}
+.chat-input{
+  flex:1;background:none;border:none;outline:none;
+  color:#e8e8e8;
+  font-family:'Nunito',sans-serif;font-size:13px;
+  padding:9px 0;min-height:38px;
+}
+.chat-input::placeholder{color:#555}
+.chat-input:disabled{opacity:.4}
+
+.btn-send{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#075e54,#128c7e);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;
+  box-shadow:0 2px 8px rgba(7,94,84,.4);
+  transition:all .2s;flex-shrink:0;
+}
+.btn-send:hover:not(:disabled){transform:scale(1.06);box-shadow:0 4px 14px rgba(7,94,84,.6)}
+.btn-send:active:not(:disabled){transform:scale(.94)}
+.btn-send:disabled{opacity:.35;cursor:not-allowed}
+.btn-send svg{width:19px;height:19px;fill:#fff;transform:rotate(45deg) translateX(-1px)}
+
+.home-bar{background:#111;padding:7px 0 14px;display:flex;justify-content:center}
+.home-bar-line{width:110px;height:4px;background:rgba(255,255,255,.15);border-radius:2px}
+
+/* CONN STATUS */
+.conn-status{display:flex;align-items:center;gap:6px;font-size:10px;justify-content:center}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+.conn-dot.loading{background:#fbbf24;animation:pulse 1s infinite}
+.conn-label{color:#555}
+
+/* ── TELA INTRO ── */
+.intro-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:#0a0a0a;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0;
+  padding:24px;
+  transition:opacity .5s ease;
+}
+.intro-overlay.fade-out{opacity:0;pointer-events:none}
+.intro-logo-icon{
+  width:72px;height:72px;
+  background:linear-gradient(135deg,#d4af37,#f5d76e);
+  border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;margin-bottom:20px;
+  box-shadow:0 12px 36px rgba(212,175,55,.35);
+  animation:iconPop .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes iconPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.intro-title{
+  font-size:26px;font-weight:800;color:#fff;
+  text-align:center;line-height:1.2;margin-bottom:8px;
+}
+.intro-title span{color:#d4af37}
+.intro-sub{
+  font-size:14px;color:#777;text-align:center;
+  line-height:1.6;max-width:320px;margin-bottom:32px;
+}
+.intro-features{
+  display:flex;flex-direction:column;gap:10px;
+  max-width:320px;width:100%;margin-bottom:32px;
+}
+.intro-feat{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:11px 14px;
+  font-size:13px;color:#ccc;
+}
+.intro-feat-icon{font-size:18px;flex-shrink:0}
+.intro-feat strong{color:#d4af37}
+.btn-comecar{
+  background:linear-gradient(135deg,#d4af37,#c49a2a);
+  color:#000;border:none;
+  border-radius:14px;padding:14px 40px;
+  font-family:'Nunito',sans-serif;
+  font-size:16px;font-weight:800;
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(212,175,55,.3);
+  transition:all .2s;
+  animation:fadeUp .6s .4s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.btn-comecar:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(212,175,55,.4)}
+.btn-comecar:active{transform:scale(.97)}
+.intro-nota{font-size:11px;color:#444;margin-top:12px;text-align:center}
+
+/* MOBILE */
+@media(max-width:720px){
+  .container{flex-direction:column;align-items:center}
+  .info-panel{max-width:360px;width:100%}
+  .phone{width:100%;max-width:360px;border-radius:32px}
+  .intro-overlay{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- TELA DE INTRO -->
+<div class="intro-overlay" id="intro">
+  <div class="intro-logo-icon">💇‍♀️</div>
+  <div class="intro-title">Conheça a <span>Bia</span></div>
+  <div class="intro-sub">
+    A assistente virtual com IA que agenda horários, responde dúvidas e atende seus clientes — 24 horas por dia.
+  </div>
+  <div class="intro-features">
+    <div class="intro-feat">
+      <div class="intro-feat-icon">📅</div>
+      <div><strong>Agenda horários</strong> automaticamente pelo WhatsApp</div>
+    </div>
+    <div class="intro-feat">
+      <div class="intro-feat-icon">🌙</div>
+      <div><strong>Atende 24h</strong> — mesmo fora do horário do salão</div>
+    </div>
+    <div class="intro-feat">
+      <div class="intro-feat-icon">❌</div>
+      <div><strong>Cancela e reagenda</strong> sem precisar da dona</div>
+    </div>
+    <div class="intro-feat">
+      <div class="intro-feat-icon">💬</div>
+      <div><strong>Responde dúvidas</strong> sobre preços e serviços na hora</div>
+    </div>
+  </div>
+  <button class="btn-comecar" onclick="comecar()">Conversar com a Bia →</button>
+  <div class="intro-nota">Demonstração gratuita · sem cadastro · abre direto no celular</div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div class="container">
+
+  <!-- PAINEL INFO -->
+  <div class="info-panel">
+    <div class="logo-area">
+      <div class="logo-icon">💇‍♀️</div>
+      <div class="logo-name">Salão Bella Arte</div>
+      <div class="logo-sub">Atendimento com Inteligência Artificial</div>
+    </div>
+
+    <div class="info-badge">
+      <div class="info-badge-label">Assistente Virtual</div>
+      <div class="info-badge-value">
+        <strong>Bia</strong> — atende 24h, agenda horários, responde dúvidas sobre preços e serviços, cancela e transfere para a humana quando necessário.
+      </div>
+    </div>
+
+    <div class="info-badge">
+      <div class="info-badge-label">Profissionais</div>
+      <div class="info-badge-value">
+        <strong>Ana</strong> — Coloração e mechas<br>
+        <strong>Camila</strong> — Cortes e tratamentos<br>
+        <strong>Julia</strong> — Manicure e pedicure<br>
+        <strong>Patricia</strong> — Estética e sobrancelha
+      </div>
+    </div>
+
+    <div class="demo-hint">
+      <div class="demo-hint-title">💡 Experimente perguntar</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Quero marcar um horário para amanhã</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Quanto custa uma progressiva?</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Quais horários vocês têm disponíveis?</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Tenho horário marcado esta semana?</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Preciso cancelar meu agendamento</div>
+      <div class="demo-hint-item" onclick="usarSugestao(this)">Vocês fazem design de sobrancelha?</div>
+    </div>
+
+    <div class="cta-contato">
+      <div class="cta-contato-txt">
+        <strong>Quer a Bia no seu salão?</strong>
+        Fale com o Benhur e saiba como funciona para o seu negócio.
+      </div>
+      <a class="btn-cta" href="https://wa.me/5551982280117?text=Ol%C3%A1%2C+Benhur%21+Vi+a+demo+da+Bia+e+quero+saber+mais+sobre+o+sistema+para+o+meu+sal%C3%A3o." target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Falar com o Benhur
+      </a>
+    </div>
+
+    <div class="powered" id="conn-status-label">
+      <span>●</span> IA ativa — Groq · llama-3.1-8b
+    </div>
+  </div>
+
+  <!-- PHONE -->
+  <div class="phone-wrap">
+    <div class="phone">
+
+      <div class="status-bar">
+        <span class="status-time" id="status-time">9:41</span>
+        <div class="status-icons">
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="rgba(255,255,255,.75)">
+            <rect x="0" y="6" width="3" height="6" rx="1"/>
+            <rect x="4.5" y="4" width="3" height="8" rx="1"/>
+            <rect x="9" y="1.5" width="3" height="10.5" rx="1"/>
+            <rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity=".35"/>
+          </svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="rgba(255,255,255,.75)">
+            <path d="M8 2C5.2 2 2.7 3.2 1 5.2L2.4 6.6C3.8 5 5.8 4 8 4s4.2 1 5.6 2.6L15 5.2C13.3 3.2 10.8 2 8 2z"/>
+            <path d="M8 6c-1.6 0-3 .7-4 1.8L5.4 9.2C6.1 8.5 7 8 8 8s1.9.5 2.6 1.2L12 7.8C11 6.7 9.6 6 8 6z"/>
+            <circle cx="8" cy="11" r="1.5"/>
+          </svg>
+          <svg width="25" height="11" viewBox="0 0 26 12" fill="rgba(255,255,255,.75)">
+            <rect x="0" y="1" width="22" height="10" rx="2" stroke="rgba(255,255,255,.45)" stroke-width="1.2" fill="none"/>
+            <rect x="22.5" y="4" width="2" height="4" rx="1" fill="rgba(255,255,255,.45)"/>
+            <rect x="1.5" y="2.5" width="17" height="7" rx="1.2"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="chat-header">
+        <div class="chat-back">‹</div>
+        <div class="chat-avatar">💇‍♀️</div>
+        <div class="chat-info">
+          <div class="chat-name">Bia — Bella Arte</div>
+          <div class="chat-status">
+            <div class="online-dot"></div>
+            online agora
+          </div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,.6)" style="margin-left:auto">
+          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+        </svg>
+      </div>
+
+      <div class="chat-body" id="chat-body">
+        <div class="date-sep"><span>Hoje</span></div>
+        <div class="msg bot">
+          <div class="bubble">Olá! 😊 Sou a <strong>Bia</strong>, assistente virtual do <strong>Salão Bella Arte</strong>.<br><br>Posso te ajudar a <strong>agendar horários</strong>, tirar dúvidas sobre <strong>serviços e preços</strong>, ou verificar seus <strong>agendamentos</strong>.<br><br>Como posso te ajudar hoje?</div>
+          <div class="msg-time" id="first-time">9:41</div>
+        </div>
+        <div class="typing-indicator" id="typing">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <div class="suggestions" id="suggestions">
+        <button class="sug-btn" onclick="sendSug('📅 Agendar horário')">📅 Agendar</button>
+        <button class="sug-btn" onclick="sendSug('Quais são os preços?')">💰 Preços</button>
+        <button class="sug-btn" onclick="sendSug('Horário de funcionamento')">🕐 Horário</button>
+      </div>
+
+      <div class="chat-footer">
+        <div class="chat-input-wrap">
+          <input class="chat-input" id="chat-input"
+            placeholder="Digite uma mensagem..."
+            onkeydown="if(event.key==='Enter'&&!enviando)enviar()">
+        </div>
+        <button class="btn-send" id="btn-send" onclick="enviar()">
+          <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+      </div>
+
+      <div class="home-bar"><div class="home-bar-line"></div></div>
+    </div>
+
+    <div class="conn-status">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span class="conn-label" id="conn-label">IA ativa · custo zero · sem servidor</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO — GROQ DIRETO NO BROWSER
+// ══════════════════════════════════════════════════════════════
+const GROQ_KEY = 'gsk_demo_placeholder'; // ← substitua pela sua chave Groq gratuita
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
+
+// ── DADOS DO SALÃO (editáveis por cliente) ──────────────────
+const SALAO = {
+  nome: 'Salão Bella Arte',
+  assistente: 'Bia',
+  endereco: 'Rua das Flores, 123 — Centro',
+  horario: 'Segunda a sexta: 9h às 19h | Sábado: 8h às 18h',
+  whatsapp_humano: '(51) 99999-9999',
+  profissionais: [
+    { nome: 'Ana', especialidade: 'Coloração e mechas' },
+    { nome: 'Camila', especialidade: 'Cortes e tratamentos capilares' },
+    { nome: 'Julia', especialidade: 'Manicure e pedicure' },
+    { nome: 'Patricia', especialidade: 'Estética e design de sobrancelha' },
+  ],
+  servicos: `
+COLORAÇÃO:
+• Coloração simples: R$ 120–180
+• Mechas/Luzes: R$ 180–280
+• Balayage: R$ 250–350
+
+TRATAMENTOS:
+• Progressiva: R$ 180–280
+• Botox capilar: R$ 120–160
+• Hidratação: R$ 80–120
+
+CORTE E FINALIZAÇÃO:
+• Corte feminino: R$ 60–90
+• Escova: R$ 45–70
+
+UNHAS:
+• Manicure: R$ 35
+• Pedicure: R$ 40
+• Gel/Fibra: R$ 80–120
+
+ESTÉTICA:
+• Design de sobrancelha: R$ 30
+• Cílios fio a fio: R$ 120–180
+• Limpeza de pele: R$ 90–130
+  `.trim(),
+
+  // Agenda simulada — próximos 7 dias com horários disponíveis
+  horariosLivres: gerarHorariosDemo(),
+  agendamentosCliente: [], // vazio — cliente novo
+};
+
+// ── GERA HORÁRIOS DEMO DINAMICAMENTE ──────────────────────
+function gerarHorariosDemo() {
+  const horarios = [];
+  const profissionais = ['Ana', 'Camila', 'Julia', 'Patricia'];
+  const slots = ['09:00', '10:00', '11:00', '13:30', '14:30', '15:30', '16:30'];
+  for (let d = 1; d <= 7; d++) {
+    const data = new Date();
+    data.setDate(data.getDate() + d);
+    const diaSemana = data.getDay();
+    if (diaSemana === 0) continue; // sem domingo
+    const dataStr = data.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+    const slotsDisponiveis = slots.filter((_, i) => (i + d) % 3 !== 0); // remove alguns para parecer real
+    profissionais.forEach(prof => {
+      slotsDisponiveis.slice(0, 4).forEach(hora => {
+        horarios.push({ data: dataStr, hora, profissional: prof });
+      });
+    });
+  }
+  return horarios;
+}
+
+// ── ESTADO ────────────────────────────────────────────────
+let historico = []; // mensagens da conversa
+let enviando = false;
+let agendamentosSimulados = []; // agendamentos feitos na demo
+
+// ── SYSTEM PROMPT ─────────────────────────────────────────
+function buildSystemPrompt() {
+  const hoje = new Date().toLocaleDateString('pt-BR', {
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+  });
+
+  const profStr = SALAO.profissionais.map(p => `• ${p.nome} — ${p.especialidade}`).join('\n');
+
+  // Agrupa horários por dia para o prompt
+  const porDia = {};
+  SALAO.horariosLivres.forEach(h => {
+    if (!porDia[h.data]) porDia[h.data] = {};
+    if (!porDia[h.data][h.profissional]) porDia[h.data][h.profissional] = [];
+    porDia[h.data][h.profissional].push(h.hora);
+  });
+  const horariosStr = Object.entries(porDia).map(([dia, profs]) =>
+    `${dia}:\n` + Object.entries(profs).map(([p, hs]) =>
+      `  ${p}: ${hs.join(', ')}`).join('\n')
+  ).join('\n\n');
+
+  const agendStr = agendamentosSimulados.length
+    ? agendamentosSimulados.map(a =>
+        `• ${a.data} às ${a.hora} com ${a.profissional} — ${a.servico}`
+      ).join('\n')
+    : 'Nenhum agendamento registrado nesta sessão.';
+
+  return `Você é ${SALAO.assistente}, a assistente virtual do ${SALAO.nome}.
+Hoje é ${hoje}.
+
+SEU PERFIL:
+- Nome: ${SALAO.assistente}
+- Personalidade: simpática, acolhedora, eficiente e direta
+- Tom: informal mas profissional — use emojis com moderação
+- Idioma: sempre português brasileiro
+
+INFORMAÇÕES DO SALÃO:
+- Nome: ${SALAO.nome}
+- Endereço: ${SALAO.endereco}
+- Horário: ${SALAO.horario}
+- WhatsApp humano: ${SALAO.whatsapp_humano}
+
+SERVIÇOS E PREÇOS:
+${SALAO.servicos}
+
+PROFISSIONAIS DISPONÍVEIS:
+${profStr}
+
+HORÁRIOS LIVRES NOS PRÓXIMOS DIAS:
+${horariosStr}
+
+AGENDAMENTOS DA CLIENTE NESTA SESSÃO:
+${agendStr}
+
+REGRAS DE ATENDIMENTO:
+1. Ao agendar: confirme data, hora, profissional e serviço. Diga que o agendamento foi registrado.
+2. Ao cancelar: confirme qual agendamento será cancelado e diga que foi cancelado.
+3. Para transferir ao humano: diga que vai chamar a responsável e forneça o WhatsApp humano.
+4. Nunca invente horários que não estejam na lista de horários livres.
+5. Se o cliente pedir um horário indisponível, ofereça alternativas da lista.
+6. Respostas curtas e diretas — máximo 4 linhas quando possível.
+7. Não repita informações desnecessárias em cada mensagem.
+8. Quando confirmar um agendamento, inclua um resumo: data, hora, profissional e serviço.
+9. Finalize agendamentos com: "Está confirmado! ✅ Qualquer dúvida é só chamar. 😊"
+
+ESTA É UMA DEMONSTRAÇÃO — simule o comportamento real do sistema como se fosse produção.`;
+}
+
+// ── CHAMAR GROQ API ───────────────────────────────────────
+async function chamarGroq(mensagemUsuario) {
+  historico.push({ role: 'user', content: mensagemUsuario });
+
+  const payload = {
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: buildSystemPrompt() },
+      ...historico.slice(-12) // últimas 12 mensagens = 6 turnos completos
+    ],
+    temperature: 0.7,
+    max_tokens: 512,
+    stream: false,
+  };
+
+  const resp = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${GROQ_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`Groq ${resp.status}: ${err}`);
+  }
+
+  const data = await resp.json();
+  const resposta = data.choices?.[0]?.message?.content || 'Desculpe, não consegui processar. Tente novamente! 😊';
+
+  historico.push({ role: 'assistant', content: resposta });
+
+  // Detecta agendamento simulado na resposta para manter estado
+  detectarAgendamento(mensagemUsuario, resposta);
+
+  return resposta;
+}
+
+// ── DETECTA AGENDAMENTOS NA CONVERSA ─────────────────────
+function detectarAgendamento(msgUsuario, resposta) {
+  const confirmaAgend = /confirmado|agendad|marcad|reservad/i.test(resposta) &&
+                        /horário|hora|\d{2}:\d{2}/i.test(resposta);
+  if (confirmaAgend) {
+    // Extrai informações básicas da resposta para o estado
+    const horaMatch = resposta.match(/(\d{2}:\d{2})/);
+    const profMatch = SALAO.profissionais.find(p => resposta.includes(p.nome));
+    if (horaMatch && profMatch) {
+      const dataMatch = resposta.match(/(segunda|terça|quarta|quinta|sexta|sábado|amanhã)[^,\n]*/i);
+      agendamentosSimulados.push({
+        hora: horaMatch[1],
+        profissional: profMatch.nome,
+        servico: 'Serviço agendado',
+        data: dataMatch ? dataMatch[0] : 'Data confirmada',
+      });
+    }
+  }
+}
+
+// ── VERIFICA SE TEM CHAVE GROQ VÁLIDA ────────────────────
+function temGroq() {
+  return GROQ_KEY && GROQ_KEY !== 'gsk_demo_placeholder' && GROQ_KEY.startsWith('gsk_');
+}
+
+// ── MÁQUINA DE ESTADOS DO FALLBACK ───────────────────────
+const FB = {
+  estado: 'inicio',
+  servico: null,
+  profissional: null,
+  hora: null,
+  data: null,
+  agendamentos: [],
+};
+
+function diaStr(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+}
+
+function proximoDia(diaSemana) {
+  const hoje = new Date();
+  const atual = hoje.getDay();
+  let diff = diaSemana - atual;
+  if (diff <= 0) diff += 7;
+  const alvo = new Date(hoje);
+  alvo.setDate(hoje.getDate() + diff);
+  return alvo.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+}
+
+function detectarServico(t) {
+  if (/corte|cort/i.test(t)) return 'Corte feminino';
+  if (/color|tintura|pintura/i.test(t)) return 'Coloração';
+  if (/mech|luzes|balayage/i.test(t)) return 'Mechas/Luzes';
+  if (/progressiva/i.test(t)) return 'Progressiva';
+  if (/botox/i.test(t)) return 'Botox capilar';
+  if (/hidrat/i.test(t)) return 'Hidratação';
+  if (/escova/i.test(t)) return 'Escova';
+  if (/manicure|mão|mao/i.test(t)) return 'Manicure';
+  if (/pedicure|pé|pe/i.test(t)) return 'Pedicure';
+  if (/gel|fibra/i.test(t)) return 'Gel/Fibra';
+  if (/sobrancelha/i.test(t)) return 'Design de sobrancelha';
+  if (/cílio|cilio/i.test(t)) return 'Cílios fio a fio';
+  if (/limpeza/i.test(t)) return 'Limpeza de pele';
+  if (/unhas|unha/i.test(t)) return 'Manicure';
+  if (/cabelo/i.test(t)) return 'Corte feminino';
+  return null;
+}
+
+function sugerirProfissional(servico) {
+  if (!servico) return 'Camila';
+  if (/color|mech|luzes|balayage/i.test(servico)) return 'Ana';
+  if (/corte|progressiva|botox|hidrat|escova/i.test(servico)) return 'Camila';
+  if (/manicure|pedicure|gel|fibra|unhas/i.test(servico)) return 'Julia';
+  if (/sobrancelha|cílio|limpeza/i.test(servico)) return 'Patricia';
+  return 'Camila';
+}
+
+function respHorariosDia() {
+  const prof = FB.profissional || 'Camila';
+  const slots = ['09:00','10:00','11:00','13:30','14:30','15:30','16:30'];
+  const disponiveis = slots.filter((_, i) => i % 3 !== 1).slice(0, 5);
+  const listaHoras = disponiveis.map(h => '• ' + h).join('\n');
+  const servicoStr = FB.servico ? ' para *' + FB.servico + '*' : '';
+  return '📅 Horários disponíveis' + servicoStr + ' em *' + FB.data + '* com *' + prof + '*:\n\n' + listaHoras + '\n\nQual horário você prefere? 😊';
+}
+
+function respostaFallback(texto) {
+  const t = texto.toLowerCase().trim();
+  historico.push({ role: 'user', content: texto });
+  const resp = processarEstado(t, texto);
+  historico.push({ role: 'assistant', content: resp });
+  return resp;
+}
+
+function processarEstado(t, original) {
+  // Cancelamento
+  if (/cancel/i.test(t)) {
+    FB.estado = 'cancelando';
+    if (FB.agendamentos.length > 0) {
+      const ags = FB.agendamentos.map((a,i) => (i+1) + '. ' + a.data + ' às ' + a.hora + ' com ' + a.profissional + ' — ' + a.servico).join('\n');
+      return 'Claro! Qual agendamento você quer cancelar?\n\n' + ags + '\n\nDigite o número. 😊';
+    }
+    return 'Não encontrei agendamentos nesta conversa. Para cancelar um horário já marcado, entre em contato pelo nosso WhatsApp. 😊';
+  }
+
+  // Confirmação de cancelamento
+  if (FB.estado === 'cancelando') {
+    const num = parseInt(t);
+    if (!isNaN(num) && num >= 1 && num <= FB.agendamentos.length) {
+      const ag = FB.agendamentos.splice(num - 1, 1)[0];
+      FB.estado = 'inicio';
+      return '✅ Agendamento cancelado!\n\n*' + ag.data + ' às ' + ag.hora + ' com ' + ag.profissional + '* foi removido.\n\nPosso te ajudar com mais alguma coisa? 😊';
+    }
+    FB.estado = 'inicio';
+    return 'Agendamento cancelado. Posso te ajudar com mais alguma coisa? 😊';
+  }
+
+  // Horário de funcionamento
+  if (/horário.*funcionamento|que horas|abre|fecha|funciona|quando.*abre/i.test(t) && !/marcar|agendar|quero.*horário/i.test(t)) {
+    return '⏰ Nosso horário de atendimento:\n\n*Segunda a sexta:* 9h às 19h\n*Sábado:* 8h às 18h\n*Domingo:* Fechado\n\nPosso agendar um horário para você? 😊';
+  }
+
+  // Preços
+  if (/preço|valor|custa|quanto|tabela/i.test(t) && !/agendar|marcar/i.test(t)) {
+    if (/corte/i.test(t)) return '✂️ Corte feminino: *R$ 60–90*\n\nQuer agendar com a Camila? 😊';
+    if (/color|mech|luzes|balayage/i.test(t)) return '🎨 Coloração com a Ana:\n\n• Coloração simples: *R$ 120–180*\n• Mechas/Luzes: *R$ 180–280*\n• Balayage: *R$ 250–350*\n\nQuer agendar? 😊';
+    if (/progressiva|botox|hidrat|tratamento/i.test(t)) return '💇 Tratamentos com a Camila:\n\n• Progressiva: *R$ 180–280*\n• Botox capilar: *R$ 120–160*\n• Hidratação: *R$ 80–120*\n\nQuer agendar? 😊';
+    if (/manicure|pedicure|gel|fibra|unha/i.test(t)) return '💅 Unhas com a Julia:\n\n• Manicure: *R$ 35*\n• Pedicure: *R$ 40*\n• Gel/Fibra: *R$ 80–120*\n\nQuer agendar? 😊';
+    if (/sobrancelha|cílio|estétic|limpeza/i.test(t)) return '✨ Estética com a Patricia:\n\n• Design de sobrancelha: *R$ 30*\n• Cílios fio a fio: *R$ 120–180*\n• Limpeza de pele: *R$ 90–130*\n\nQuer agendar? 😊';
+    return 'Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60–90\n🎨 *Coloração:* R$ 120–180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180–280\n✨ *Sobrancelha:* R$ 30\n\nQuer saber sobre algum serviço específico? 😊';
+  }
+
+  // Endereço
+  if (/endereço|onde|localiza|fica|como chegar/i.test(t)) {
+    return '📍 Estamos na *' + SALAO.endereco + '*\n\nHorário: ' + SALAO.horario + '\n\nQuer agendar um horário? 😊';
+  }
+
+  // Serviços
+  if (/serviço|o que vocês|o que fazem|que tipos/i.test(t)) {
+    return 'Oferecemos:\n\n✂️ *Corte e finalização*\n🎨 *Coloração e mechas*\n💇 *Tratamentos capilares*\n💅 *Manicure e pedicure*\n✨ *Estética e sobrancelha*\n\nQuer saber os preços ou agendar algum serviço? 😊';
+  }
+
+  // Inicia agendamento
+  if (/agendar|marcar|quero.*horário|reservar|quero.*cortar|quero.*fazer|quero.*marca/i.test(t) ||
+      (FB.estado === 'inicio' && /corte|cabelo|unhas|color|mechas|progressiva|sobrancelha|cílio/i.test(t))) {
+    FB.servico = detectarServico(t);
+    FB.profissional = sugerirProfissional(FB.servico);
+    if (/amanhã/i.test(t)) FB.data = diaStr(1);
+    else if (/hoje/i.test(t)) FB.data = diaStr(0);
+    else if (/segunda/i.test(t)) FB.data = proximoDia(1);
+    else if (/terça/i.test(t)) FB.data = proximoDia(2);
+    else if (/quarta/i.test(t)) FB.data = proximoDia(3);
+    else if (/quinta/i.test(t)) FB.data = proximoDia(4);
+    else if (/sexta/i.test(t)) FB.data = proximoDia(5);
+    else if (/sábado/i.test(t)) FB.data = proximoDia(6);
+
+    if (FB.data) {
+      FB.estado = 'escolhendo_hora';
+      return respHorariosDia();
+    }
+    FB.estado = 'escolhendo_dia';
+    const servicoStr = FB.servico ? ' para *' + FB.servico + '*' : '';
+    return 'Ótimo! Vou agendar' + servicoStr + ' para você. 😊\n\nQual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n📅 *' + diaStr(4) + '*\n\nOu me diz outra data!';
+  }
+
+  // Escolhendo dia
+  if (FB.estado === 'escolhendo_dia') {
+    if (/amanhã/i.test(t)) FB.data = diaStr(1);
+    else if (/hoje/i.test(t)) FB.data = diaStr(0);
+    else if (/segunda/i.test(t)) FB.data = proximoDia(1);
+    else if (/terça/i.test(t)) FB.data = proximoDia(2);
+    else if (/quarta/i.test(t)) FB.data = proximoDia(3);
+    else if (/quinta/i.test(t)) FB.data = proximoDia(4);
+    else if (/sexta/i.test(t)) FB.data = proximoDia(5);
+    else if (/sábado/i.test(t)) FB.data = proximoDia(6);
+    else { const n = parseInt(t); if (!isNaN(n) && n>=1 && n<=7) FB.data = diaStr(n); }
+    if (FB.data) { FB.estado = 'escolhendo_hora'; return respHorariosDia(); }
+    return 'Me diz o dia — pode ser amanhã, segunda, terça, quarta, quinta, sexta ou sábado. 😊';
+  }
+
+  // Escolhendo hora
+  if (FB.estado === 'escolhendo_hora') {
+    const horaMatch = t.match(/(\d{1,2})(?::(\d{2}))?(?:\s*h)?/);
+    if (horaMatch) {
+      FB.hora = horaMatch[1].padStart(2,'0') + ':' + (horaMatch[2] || '00');
+      if (!FB.servico) FB.servico = detectarServico(t) || 'Serviço a confirmar';
+      if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico);
+      FB.estado = 'confirmando';
+      return 'Perfeito! Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 *Horário:* ' + FB.hora + '\n💇 *Serviço:* ' + FB.servico + '\n👩 *Profissional:* ' + FB.profissional + '\n\nConfirmo o agendamento? (sim/não)';
+    }
+    if (/manhã|manha/i.test(t)) {
+      FB.hora = '09:00'; if (!FB.servico) FB.servico = 'Serviço a confirmar'; if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico); FB.estado = 'confirmando';
+      return 'Ótimo! Deixo para *09:00*. Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 09:00\n💇 ' + FB.servico + '\n👩 ' + FB.profissional + '\n\nConfirmo? (sim/não)';
+    }
+    if (/tarde/i.test(t)) {
+      FB.hora = '14:00'; if (!FB.servico) FB.servico = 'Serviço a confirmar'; if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico); FB.estado = 'confirmando';
+      return 'Ótimo! Deixo para *14:00*. Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 14:00\n💇 ' + FB.servico + '\n👩 ' + FB.profissional + '\n\nConfirmo? (sim/não)';
+    }
+    return respHorariosDia();
+  }
+
+  // Confirmando
+  if (FB.estado === 'confirmando') {
+    if (/sim|ok|confirma|pode|isso|certo|tá bom|ta bom|claro|perfeito|ótimo|otimo/i.test(t)) {
+      FB.agendamentos.push({ data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional });
+      const ag = { data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional };
+      FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+      return '✅ *Agendamento confirmado!*\n\n📅 ' + ag.data + '\n🕐 ' + ag.hora + '\n💇 ' + ag.servico + '\n👩 ' + ag.profissional + '\n\nTe esperamos! Qualquer dúvida é só chamar. 😊';
+    }
+    if (/não|nao|cancela|errado|outro/i.test(t)) {
+      FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+      return 'Tudo bem! 😊 Me diz o dia e horário que prefere que verifico as opções.';
+    }
+    return 'Para confirmar, me responde *sim* ou *não*. 😊';
+  }
+
+  // Transferência humana
+  if (/falar.*pessoa|atendente|humano|gerente|responsável|dona/i.test(t)) {
+    return 'Claro! Vou te conectar com nossa equipe.\n\n📱 *WhatsApp:* ' + SALAO.whatsapp_humano + '\n\nEles retornam dentro do horário:\n' + SALAO.horario + ' 😊';
+  }
+
+  // Saudações simples
+  if (/^(olá|ola|oi|bom dia|boa tarde|boa noite|hey|hi)[\s!?.,]*$/i.test(t)) {
+    return 'Olá! 😊 Que bom te ver por aqui!\n\nPosso te ajudar a:\n\n📅 *Agendar* um horário\n💰 Ver nossos *preços*\n🕐 Saber o *horário de funcionamento*\n📍 Ver nossa *localização*\n\nO que você precisa?';
+  }
+
+  // Agradecimentos
+  if (/obrigad|valeu|thanks|ótimo|otimo|perfeito|excelente/i.test(t) && FB.estado === 'inicio') {
+    return 'Disponha! 😊 Foi um prazer atender. Até a próxima visita ao *' + SALAO.nome + '*! 💇‍♀️';
+  }
+
+  // Retoma fluxo se em estado intermediário
+  if (FB.estado === 'escolhendo_dia') return 'Para qual dia você quer agendar? Pode ser amanhã, segunda, terça, quarta, quinta ou sexta. 😊';
+  if (FB.estado === 'escolhendo_hora') return respHorariosDia();
+
+  return 'Entendi! 😊 Posso te ajudar com:\n\n📅 *Agendar* um horário\n💰 *Preços* dos serviços\n🕐 *Horário* de funcionamento\n📍 Nossa *localização*\n\nO que você quer fazer?';
+}
+
+// ── ENVIAR MENSAGEM ───────────────────────────────────────
+async function enviar() {
+  if (enviando) return;
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('btn-send');
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  enviando = true;
+  input.disabled = true;
+  btn.disabled = true;
+  input.value = '';
+
+  document.getElementById('suggestions').style.display = 'none';
+  adicionarMensagem(texto, 'user');
+  mostrarTyping(true);
+
+  try {
+    let resposta;
+    if (temGroq()) {
+      const [r] = await Promise.all([chamarGroq(texto), sleep(800)]);
+      resposta = r;
+    } else {
+      await sleep(900 + Math.random()*500);
+      resposta = respostaFallback(texto);
+    }
+    mostrarTyping(false);
+    adicionarMensagem(resposta, 'bot');
+  } catch(e) {
+    mostrarTyping(false);
+    console.error('Erro:', e);
+    adicionarMensagem(respostaFallback(texto), 'bot');
+  } finally {
+    enviando = false;
+    input.disabled = false;
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+// ── FALLBACK — responde sem API (para demo sem chave) ─────
+async function respostaFallback(texto) {
+  const t = texto.toLowerCase();
+  if (/agen|marcar|horário|disponível/i.test(t)) {
+    const amanha = new Date(); amanha.setDate(amanha.getDate()+1);
+    const dStr = amanha.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
+    return `Claro! Temos horários disponíveis para ${dStr}:\n\n📅 *Ana (coloração):* 09:00, 10:00, 14:30\n📅 *Camila (cortes):* 11:00, 13:30, 15:30\n📅 *Julia (unhas):* 09:00, 10:00, 14:30, 16:30\n\nQual horário e serviço você prefere? 😊`;
+  }
+  if (/preço|valor|custa|quanto/i.test(t)) {
+    return `Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60–90\n🎨 *Coloração:* R$ 120–180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180–280\n✨ *Botox capilar:* R$ 120–160\n\nQuer saber sobre algum serviço específico? 😊`;
+  }
+  if (/horário|funciona|abre|fecha/i.test(t)) {
+    return `⏰ Nosso horário de atendimento:\n\n*Segunda a sexta:* 9h às 19h\n*Sábado:* 8h às 18h\n*Domingo:* Fechado\n\nPosso agendar um horário para você? 😊`;
+  }
+  if (/cancel/i.test(t)) {
+    return `Tudo bem! Para cancelar, me diz qual agendamento — a data e o horário — que eu cancelo agora mesmo. 😊`;
+  }
+  if (/endereço|onde|localiza|fica/i.test(t)) {
+    return `📍 Estamos na *${SALAO.endereco}*!\n\nHorário: ${SALAO.horario}\n\nQuer agendar uma visita? 😊`;
+  }
+  if (/sobrancelha|cílio|estétic/i.test(t)) {
+    return `Sim! Nossa especialista *Patricia* cuida de:\n\n✨ Design de sobrancelha: *R$ 30*\n👁️ Cílios fio a fio: *R$ 120–180*\n🌿 Limpeza de pele: *R$ 90–130*\n\nQuer agendar com a Patricia? 😊`;
+  }
+  if (/progressiva|botox|hidrat/i.test(t)) {
+    return `Nossa *Camila* é especialista em tratamentos!\n\n💎 Progressiva: *R$ 180–280*\n✨ Botox capilar: *R$ 120–160*\n💧 Hidratação: *R$ 80–120*\n\nQuer saber mais ou agendar? 😊`;
+  }
+  return `Olá! 😊 Posso te ajudar com:\n\n📅 *Agendamentos* — marcar ou cancelar horários\n💰 *Preços* — serviços e valores\n🕐 *Horários* — funcionamento do salão\n📍 *Localização* — onde nos encontrar\n\nSobre o que você quer saber?`;
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function adicionarMensagem(texto, tipo) {
+  const body = document.getElementById('chat-body');
+  const typing = document.getElementById('typing');
+  const div = document.createElement('div');
+  div.className = 'msg ' + tipo;
+  // Formata negrito *texto* e quebras de linha
+  const fmt = texto
+    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+    .replace(/\\n/g, '<br>')
+    .replace(/\n/g, '<br>');
+  div.innerHTML = `<div class="bubble">${fmt}</div><div class="msg-time">${horaAgora()}</div>`;
+  body.insertBefore(div, typing);
+  body.scrollTop = body.scrollHeight;
+}
+
+function mostrarTyping(show) {
+  const t = document.getElementById('typing');
+  const b = document.getElementById('chat-body');
+  t.className = 'typing-indicator' + (show ? ' show' : '');
+  if (show) b.scrollTop = b.scrollHeight;
+}
+
+function horaAgora() {
+  const a = new Date();
+  return String(a.getHours()).padStart(2,'0') + ':' + String(a.getMinutes()).padStart(2,'0');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function sendSug(txt) {
+  if (enviando) return;
+  document.getElementById('chat-input').value = txt;
+  enviar();
+}
+
+function usarSugestao(el) {
+  if (enviando) return;
+  document.getElementById('chat-input').value = el.textContent;
+  enviar();
+}
+
+// ── TELA INTRO ────────────────────────────────────────────
+function comecar() {
+  const intro = document.getElementById('intro');
+  intro.classList.add('fade-out');
+  setTimeout(() => intro.style.display = 'none', 500);
+  setTimeout(() => document.getElementById('chat-input').focus(), 600);
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Atualiza hora no status bar
+  function atualizarHora() {
+    const h = horaAgora();
+    document.getElementById('status-time').textContent = h;
+    document.getElementById('first-time').textContent = h;
+  }
+  atualizarHora();
+  setInterval(atualizarHora, 1000);
+
+  // Testa se a chave Groq está configurada
+  if (GROQ_KEY === 'gsk_demo_placeholder' || !GROQ_KEY.startsWith('gsk_')) {
+    document.getElementById('conn-label').textContent = 'Modo demo · respostas locais';
+    document.getElementById('conn-status-label').innerHTML =
+      '<span style="color:#fbbf24">●</span> <span style="color:#666">Modo demonstração — respostas locais</span>';
+  }
+});
+</script>
+</body>
+</html>
