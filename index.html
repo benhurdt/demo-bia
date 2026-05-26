@@ -784,10 +784,11 @@ function resolverDataDM(dia, mes) {
 }
 
 function resolverDiaNum(dia) {
-  // Recebe numero do dia do mes, encontra a data mais proxima com esse dia
-  const hoje = new Date();
+  // Recebe numero do dia do mes, encontra a data correta no mes atual ou proximo
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
   const tentativa = new Date(hoje.getFullYear(), hoje.getMonth(), dia);
-  // Se ja passou, tenta proximo mes
+  tentativa.setHours(0,0,0,0);
+  // Só vai para o próximo mês se o dia já passou completamente
   if (tentativa < hoje) {
     tentativa.setMonth(tentativa.getMonth() + 1);
   }
@@ -895,6 +896,19 @@ function processarEstado(t, original) {
     return 'Oferecemos:\n\n✂️ *Corte e finalização*\n🎨 *Coloração e mechas*\n💇 *Tratamentos capilares*\n💅 *Manicure e pedicure*\n✨ *Estética e sobrancelha*\n\nQuer saber os preços ou agendar algum serviço? 😊';
   }
 
+  // Troca de profissional pedida diretamente
+  if (/e a |e o |com a |com o |pode ser a |pode ser o |quero.*com /i.test(t) || 
+      (SALAO.profissionais.some(p => t.includes(p.nome.toLowerCase())) && FB.estado === 'escolhendo_dia')) {
+    const profPedida = SALAO.profissionais.find(p => t.includes(p.nome.toLowerCase()));
+    if (profPedida) {
+      FB.profissional = profPedida.nome;
+      if (FB.data) { FB.estado = 'escolhendo_hora'; return respHorariosDia(); }
+      FB.estado = 'escolhendo_dia';
+      const servicoStr = FB.servico ? ' para *' + FB.servico + '*' : '';
+      return 'Claro! Vou verificar os horários da *' + profPedida.nome + '*' + servicoStr + '. Qual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n\nOu me diz outro dia!';
+    }
+  }
+
   // Inicia agendamento
   if (/agendar|marcar|quero.*horário|reservar|quero.*cortar|quero.*fazer|quero.*marca/i.test(t) ||
       (FB.estado === 'inicio' && /corte|cabelo|unhas|color|mechas|progressiva|sobrancelha|cílio/i.test(t))) {
@@ -949,6 +963,35 @@ function processarEstado(t, original) {
 
   // Escolhendo hora
   if (FB.estado === 'escolhendo_hora') {
+    // Detecta se o usuário está pedindo outro dia (ex: "dia 27", "27", "amanhã")
+    if (/amanhã/i.test(t)) { FB.data = diaStr(1); return respHorariosDia(); }
+    if (/segunda/i.test(t)) { FB.data = proximoDia(1); return respHorariosDia(); }
+    if (/terça|terca/i.test(t)) { FB.data = proximoDia(2); return respHorariosDia(); }
+    if (/quarta/i.test(t)) { FB.data = proximoDia(3); return respHorariosDia(); }
+    if (/quinta/i.test(t)) { FB.data = proximoDia(4); return respHorariosDia(); }
+    if (/sexta/i.test(t)) { FB.data = proximoDia(5); return respHorariosDia(); }
+    if (/sábado|sabado/i.test(t)) { FB.data = proximoDia(6); return respHorariosDia(); }
+    const dmMatch2 = t.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    if (dmMatch2) { FB.data = resolverDataDM(parseInt(dmMatch2[1]), parseInt(dmMatch2[2])); return respHorariosDia(); }
+    // Detecta pedido de dia isolado (ex: "27", "dia 27") — número grande (>8) é dia, não hora
+    const diaIsoladoMatch = t.match(/^(?:dia\s*)?(\d{1,2})\s*$/);
+    if (diaIsoladoMatch) {
+      const num = parseInt(diaIsoladoMatch[1]);
+      if (num > 8) { FB.data = resolverDiaNum(num); return respHorariosDia(); }
+    }
+    // Detecta pedido de profissional diferente
+    const profPedida = SALAO.profissionais.find(p => t.includes(p.nome.toLowerCase()));
+    if (profPedida) {
+      if (profPedida.especialidade.toLowerCase().includes('corte') ||
+          profPedida.especialidade.toLowerCase().includes('color') ||
+          !FB.servico ||
+          window.confirm === undefined) {
+        FB.profissional = profPedida.nome;
+        return respHorariosDia();
+      }
+      FB.profissional = profPedida.nome;
+      return respHorariosDia();
+    }
     const horaMatch = t.match(/(\d{1,2})(?::(\d{2}))?(?:\s*h)?/);
     if (horaMatch) {
       const horaDigitada = horaMatch[1].padStart(2,'0') + ':' + (horaMatch[2] || '00');
@@ -956,9 +999,8 @@ function processarEstado(t, original) {
       const disponiveis = getHorariosDisponiveis();
       const horaValida = disponiveis.find(h => h === horaDigitada || h.startsWith(horaDigitada));
       if (!horaValida) {
-        // Horário não disponível — sugere alternativas
         const lista = disponiveis.slice(0,5).map(h => '• ' + h).join('\n');
-        return 'Desculpe, o horário *' + horaDigitada + '* nao esta disponivel. Os horarios livres sao:\n\n' + lista + '\n\nQual desses voce prefere? 😊';
+        return 'Esse horário não está disponível. Os horários livres são:\n\n' + lista + '\n\nQual desses você prefere? 😊';
       }
       FB.hora = horaValida;
       if (!FB.servico) FB.servico = detectarServico(t) || 'Servico a confirmar';
@@ -1011,9 +1053,10 @@ function processarEstado(t, original) {
     return 'Olá! 😊 Que bom te ver por aqui!\n\nPosso te ajudar a:\n\n📅 *Agendar* um horário\n💰 Ver nossos *preços*\n🕐 Saber o *horário de funcionamento*\n📍 Ver nossa *localização*\n\nO que você precisa?';
   }
 
-  // Agradecimentos
-  if (/obrigad|valeu|thanks|ótimo|otimo|perfeito|excelente/i.test(t) && FB.estado === 'inicio') {
-    return 'Disponha! 😊 Foi um prazer atender. Até a próxima visita ao *' + SALAO.nome + '*! 💇‍♀️';
+  // Encerramento da conversa — em qualquer estado
+  if (/obrigad|valeu|thanks|deixa assim|deixar assim|pode ser|tudo certo|tudo bem|tchau|até|ate logo|não precisa|nao precisa|por enquanto/i.test(t)) {
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+    return 'Disponha! 😊 Foi um prazer atender. Qualquer dúvida é só chamar. Até a próxima visita ao *' + SALAO.nome + '*! 💇‍♀️';
   }
 
   // Retoma fluxo se em estado intermediário
