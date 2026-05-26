@@ -875,6 +875,29 @@ function respostaFallback(texto) {
 }
 
 function processarEstado(t, original) {
+
+  // ══ PRIORIDADE MÁXIMA — verificações antes de qualquer estado ══
+
+  // Reclamação → transferência IMEDIATA independente do estado
+  if (/reclama|problema|danific|dano|estrag|queimou|caiu.*cabelo|cabelo.*caiu|tá caindo|ta caindo|caindo|horrível|horrivel|pessim|insatisf|lament|erro|errou|culpa|responsab|indeniz|reembolso|devolv|machuc|ardeu|ardia|coçando|cocando|alergi/i.test(t)) {
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+    return '😟 Lamento muito pelo ocorrido! Entendo que é uma situação urgente e precisa de atenção imediata.\n\n📱 *WhatsApp direto:* ' + SALAO.whatsapp_humano + '\n\nPor favor, entre em contato agora — nossa equipe vai te atender com prioridade e encontrar a melhor solução. 🙏';
+  }
+
+  // Pedido de humano → transferência imediata independente do estado
+  if (/falar.*pessoa|falar.*alguém|falar.*alguem|falar.*humano|quero.*humano|quero.*pessoa|preciso.*falar|atendente|responsável|dona|gerente|me ajude|ajuda|socorro/i.test(t)) {
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+    return 'Claro! Vou te conectar com nossa equipe agora. 😊\n\n📱 *WhatsApp:* ' + SALAO.whatsapp_humano + '\n\nEles atendem: ' + SALAO.horario + '\n\nFora do horário, deixe sua mensagem que retornam assim que possível!';
+  }
+
+  // Encerramento → reseta estado independente de onde estava
+  if (/obrigad|valeu|thanks|deixa assim|deixar assim|pode ser|tudo certo|tchau|até|ate logo|não precisa|nao precisa|por enquanto/i.test(t)) {
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null; FB.nomeCliente = null;
+    return 'Disponha! 😊 Foi um prazer atender. Qualquer dúvida é só chamar. Até a próxima visita ao *' + SALAO.nome + '*! 💇‍♀️';
+  }
+
+  // ══ FIM DAS VERIFICAÇÕES DE PRIORIDADE MÁXIMA ══
+
   // Estado: pedindo nome para finalizar agendamento
   if (FB.estado === 'pedindo_nome') {
     if (t.length < 2) return 'Me diz seu nome para confirmar o agendamento. 😊';
@@ -1101,14 +1124,8 @@ function processarEstado(t, original) {
     return 'Para confirmar, me responde *sim* ou *não*. 😊';
   }
 
-  // Reclamação, problema, dano → transferência IMEDIATA e prioritária
-  if (/reclama|problema|danific|dano|estrag|queimou|caiu.*cabelo|cabelo.*caiu|horrível|horrivel|pessim|insatisf|lament|erro|errou|culpa|responsab|indeniz|reembolso|devolv/i.test(t)) {
-    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
-    return '😟 Lamento muito pelo ocorrido! Entendo que é uma situação urgente e vou te conectar imediatamente com nossa equipe.\n\n📱 *WhatsApp direto:* ' + SALAO.whatsapp_humano + '\n\nPor favor, entre em contato agora — eles vão te atender com prioridade e encontrar a melhor solução. 🙏';
-  }
-
-  // Transferência humana
-  if (/falar.*pessoa|atendente|humano|gerente|responsável|dona|dono|proprietár|falar.*alguém|falar.*alguem|falar.*com/i.test(t)) {
+  // Transferência humana (complementar — casos não capturados acima)
+  if (/falar.*pessoa|atendente|proprietár|falar.*com/i.test(t)) {
     return 'Claro! Posso disponibilizar o WhatsApp para você conversar diretamente com nossa equipe. 😊\n\n📱 *WhatsApp:* ' + SALAO.whatsapp_humano + '\n\nEles atendem:\n' + SALAO.horario + '\n\nFora desse horário, deixe sua mensagem que retornam assim que possível!';
   }
 
@@ -1126,11 +1143,7 @@ function processarEstado(t, original) {
     return 'Olá! 😊 Que bom te ver por aqui!\n\nPosso te ajudar a:\n\n📅 *Agendar* um horário\n💰 Ver nossos *preços*\n🕐 Saber o *horário de funcionamento*\n📍 Ver nossa *localização*\n\nO que você precisa?';
   }
 
-  // Encerramento da conversa — em qualquer estado
-  if (/obrigad|valeu|thanks|deixa assim|deixar assim|pode ser|tudo certo|tudo bem|tchau|até|ate logo|não precisa|nao precisa|por enquanto/i.test(t)) {
-    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
-    return 'Disponha! 😊 Foi um prazer atender. Qualquer dúvida é só chamar. Até a próxima visita ao *' + SALAO.nome + '*! 💇‍♀️';
-  }
+
 
   // Retoma fluxo se em estado intermediário
   if (FB.estado === 'escolhendo_dia') return 'Para qual dia você quer agendar? Pode ser amanhã, segunda, terça, quarta, quinta ou sexta. 😊';
