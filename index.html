@@ -840,6 +840,30 @@ function respHorariosDia() {
   return '📅 Horários disponíveis' + servicoStr + ' em *' + FB.data + '* com *' + prof + '*:\n\n' + listaHoras + '\n\nQual horário você prefere? 😊';
 }
 
+function horaDeExtenso(t) {
+  // Converte hora por extenso para formato HH:MM
+  const mapa = {
+    'uma':      '01:00', 'dois':    '02:00', 'tres':    '03:00', 'três':    '03:00',
+    'quatro':   '04:00', 'cinco':   '05:00', 'seis':    '06:00', 'sete':    '07:00',
+    'oito':     '08:00', 'nove':    '09:00', 'dez':     '10:00', 'onze':    '11:00',
+    'doze':     '12:00', 'treze':   '13:00', 'catorze': '14:00', 'quatorze':'14:00',
+    'quinze':   '15:00', 'dezesseis':'16:00','dezessete':'17:00','dezoito':  '18:00',
+    'dezenove': '19:00',
+  };
+  // Verifica "nove horas", "às nove", "nove h", "as nove", só "nove" etc.
+  const clean = t.replace(/às|as|horas|hora|h/gi, '').trim();
+  // Verifica meia hora — "nove e meia" = 09:30
+  for (const [ext, hora] of Object.entries(mapa)) {
+    if (clean === ext || clean === ext + ' e meia' || new RegExp('\\b' + ext + '\\b').test(clean)) {
+      if (/e meia/i.test(clean)) {
+        return hora.replace(':00', ':30');
+      }
+      return hora;
+    }
+  }
+  return null;
+}
+
 function respostaFallback(texto) {
   const t = texto.toLowerCase().trim();
   historico.push({ role: 'user', content: texto });
@@ -907,6 +931,12 @@ function processarEstado(t, original) {
       const servicoStr = FB.servico ? ' para *' + FB.servico + '*' : '';
       return 'Claro! Vou verificar os horários da *' + profPedida.nome + '*' + servicoStr + '. Qual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n\nOu me diz outro dia!';
     }
+  }
+
+  // "Sim" após oferta de serviço — inicia agendamento com serviço já definido
+  if (/^(sim|s|yes|quero|pode|claro|vamos|ok)[\s!.]*$/i.test(t) && FB.servico && FB.estado === 'inicio') {
+    FB.estado = 'escolhendo_dia';
+    return 'Ótimo! Para qual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n📅 *' + diaStr(4) + '*\n\nOu me diz outra data! 😊';
   }
 
   // Inicia agendamento
@@ -978,6 +1008,21 @@ function processarEstado(t, original) {
     if (diaIsoladoMatch) {
       const num = parseInt(diaIsoladoMatch[1]);
       if (num > 8) { FB.data = resolverDiaNum(num); return respHorariosDia(); }
+    }
+    // Detecta horário por extenso
+    const horaExtenso = horaDeExtenso(t);
+    if (horaExtenso) {
+      const disponiveis = getHorariosDisponiveis();
+      const horaValida = disponiveis.find(h => h === horaExtenso || h.startsWith(horaExtenso));
+      if (!horaValida) {
+        const lista = disponiveis.slice(0,5).map(h => '• ' + h).join('\n');
+        return 'Esse horário não está disponível. Os horários livres são:\n\n' + lista + '\n\nQual desses você prefere? 😊';
+      }
+      FB.hora = horaValida;
+      if (!FB.servico) FB.servico = 'Serviço a confirmar';
+      if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico);
+      FB.estado = 'confirmando';
+      return 'Perfeito! Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 *Horário:* ' + FB.hora + '\n💇 *Serviço:* ' + FB.servico + '\n👩 *Profissional:* ' + FB.profissional + '\n\nConfirmo o agendamento? (sim/não)';
     }
     // Detecta pedido de profissional diferente
     const profPedida = SALAO.profissionais.find(p => t.includes(p.nome.toLowerCase()));
