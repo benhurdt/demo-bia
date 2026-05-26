@@ -806,8 +806,8 @@ function getHorariosDisponiveis() {
 }
 
 function detectarServico(t) {
-  if (/corte|cort/i.test(t)) return 'Corte feminino';
-  if (/color|tintura|pintura/i.test(t)) return 'Coloração';
+  // Serviços específicos têm prioridade — ordem importa
+  if (/pintar|pintei|pint|color|tintura|tingi|tingo/i.test(t)) return 'Coloração';
   if (/mech|luzes|balayage/i.test(t)) return 'Mechas/Luzes';
   if (/progressiva/i.test(t)) return 'Progressiva';
   if (/botox/i.test(t)) return 'Botox capilar';
@@ -820,7 +820,10 @@ function detectarServico(t) {
   if (/cílio|cilio/i.test(t)) return 'Cílios fio a fio';
   if (/limpeza/i.test(t)) return 'Limpeza de pele';
   if (/unhas|unha/i.test(t)) return 'Manicure';
-  if (/cabelo/i.test(t)) return 'Corte feminino';
+  // Corte só se não houver nenhum outro serviço identificado
+  if (/corte|cort/i.test(t)) return 'Corte feminino';
+  // "cabelo" genérico = corte, mas só se não veio com verbo de outro serviço
+  if (/cabelo/i.test(t) && !/pintar|color|lavar|hidratar|escovar/i.test(t)) return 'Corte feminino';
   return null;
 }
 
@@ -1003,6 +1006,14 @@ function processarEstado(t, original) {
 
   // Escolhendo dia
   if (FB.estado === 'escolhendo_dia') {
+    // Detecta correção de serviço ("não, quero pintar" / "na verdade quero colorir")
+    const novoServico = detectarServico(t);
+    if (novoServico && novoServico !== FB.servico &&
+        /não|nao|na verdade|quero|prefiro|pintar|color|mech|progressiva|botox|hidrat|manicure|pedicure|sobrancelha/i.test(t)) {
+      FB.servico = novoServico;
+      FB.profissional = sugerirProfissional(novoServico);
+      return 'Entendido! Vou agendar *' + novoServico + '* para você. 😊\n\nQual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n📅 *' + diaStr(4) + '*\n\nOu me diz outra data!';
+    }
     // Tenta reconhecer data em múltiplos formatos
     if (/amanhã/i.test(t)) FB.data = diaStr(1);
     else if (/hoje/i.test(t)) FB.data = diaStr(0);
@@ -1013,12 +1024,10 @@ function processarEstado(t, original) {
     else if (/sexta/i.test(t)) FB.data = proximoDia(5);
     else if (/sábado|sabado/i.test(t)) FB.data = proximoDia(6);
     else {
-      // Tenta DD/MM ou DD/MM/YYYY
       const dmMatch = t.match(/(\d{1,2})[\/\-](\d{1,2})/);
       if (dmMatch) {
         FB.data = resolverDataDM(parseInt(dmMatch[1]), parseInt(dmMatch[2]));
       } else {
-        // Tenta só o número do dia (ex: "26" ou "dia 26")
         const dayMatch = t.match(/(?:dia\s*)?(\d{1,2})(?:\s*$|\s+de)?/);
         if (dayMatch) {
           const dia = parseInt(dayMatch[1]);
@@ -1027,7 +1036,7 @@ function processarEstado(t, original) {
       }
     }
     if (FB.data) { FB.estado = 'escolhendo_hora'; return respHorariosDia(); }
-    return 'Me diz o dia -- pode ser amanhã, segunda, terça, quarta, quinta, sexta ou sábado. 😊';
+    return 'Me diz o dia — pode ser amanhã, segunda, terça, quarta, quinta, sexta ou sábado. 😊';
   }
 
   // Escolhendo hora
