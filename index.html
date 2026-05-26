@@ -797,6 +797,20 @@ function resolverDiaNum(dia) {
   return tentativa.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
 }
 
+function normalizarHora(t) {
+  // Aceita: "15:30", "15.30", "15h30", "15 30", "1530", "15e30"
+  // Retorna HH:MM ou null
+  const m1 = t.match(/^(\d{1,2})[:\.hH\s](\d{2})$/);
+  if (m1) return m1[1].padStart(2,'0') + ':' + m1[2];
+  // "15 e 30", "15 e meia"
+  const m2 = t.match(/^(\d{1,2})\s+e\s+(\d{2})$/);
+  if (m2) return m2[1].padStart(2,'0') + ':' + m2[2];
+  // Apenas número como "15" ou "9"
+  const m3 = t.match(/^(\d{1,2})$/);
+  if (m3) return m3[1].padStart(2,'0') + ':00';
+  return null;
+}
+
 function getHorariosDisponiveis() {
   // Retorna lista de horarios disponiveis para o dia/profissional atual
   const slots = ['09:00','10:00','11:00','13:30','14:30','15:30','16:30'];
@@ -866,6 +880,10 @@ function horaDeExtenso(t) {
     }
   }
   return null;
+}
+
+function confirmarResumo() {
+  return 'Perfeito! Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 *Horário:* ' + FB.hora + '\n💇 *Serviço:* ' + FB.servico + '\n👩 *Profissional:* ' + FB.profissional + '\n\nConfirmo o agendamento? (sim/não)';
 }
 
 function respostaFallback(texto) {
@@ -1058,19 +1076,22 @@ function processarEstado(t, original) {
       if (num > 8) { FB.data = resolverDiaNum(num); return respHorariosDia(); }
     }
     // Detecta horário por extenso
+    // Tenta todos os formatos de hora — extenso, numérico, variações
     const horaExtenso = horaDeExtenso(t);
-    if (horaExtenso) {
+    const horaNorm = normalizarHora(t);
+    const horaTentativa = horaExtenso || horaNorm;
+    if (horaTentativa) {
       const disponiveis = getHorariosDisponiveis();
-      const horaValida = disponiveis.find(h => h === horaExtenso || h.startsWith(horaExtenso));
+      const horaValida = disponiveis.find(h => h === horaTentativa);
       if (!horaValida) {
-        const lista = disponiveis.slice(0,5).map(h => '• ' + h).join('\n');
+        const lista = disponiveis.map(h => '• ' + h).join('\n');
         return 'Esse horário não está disponível. Os horários livres são:\n\n' + lista + '\n\nQual desses você prefere? 😊';
       }
       FB.hora = horaValida;
       if (!FB.servico) FB.servico = 'Serviço a confirmar';
       if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico);
       FB.estado = 'confirmando';
-      return 'Perfeito! Confirmando:\n\n📅 *Data:* ' + FB.data + '\n🕐 *Horário:* ' + FB.hora + '\n💇 *Serviço:* ' + FB.servico + '\n👩 *Profissional:* ' + FB.profissional + '\n\nConfirmo o agendamento? (sim/não)';
+      return confirmarResumo();
     }
     // Detecta pedido de profissional diferente
     const profPedida = SALAO.profissionais.find(p => t.includes(p.nome.toLowerCase()));
