@@ -859,9 +859,9 @@ function horaDeExtenso(t) {
   const clean = t.replace(/\bàs\b|\bas\b|\bhoras\b|\bhora\b|\bh\b/gi,'').trim();
   for(const [ext,hora] of Object.entries(mapa)){
     if(new RegExp('(?:^|\\s)' + ext + '(?:\\s|$|[,!?.])', 'i').test(clean)){
-      if(/e meia/i.test(clean)) return hora.replace(':00',':30');
-      if(/e quinze|e um quarto/i.test(clean)) return hora.replace(':00',':15');
-      if(/e quarenta e cinco|menos um quarto/i.test(clean)) return hora.replace(':00',':45');
+      if(/e meia|e trinta|e 30\b/i.test(clean)) return hora.replace(':00',':30');
+      if(/e quinze|e um quarto|e 15\b/i.test(clean)) return hora.replace(':00',':15');
+      if(/e quarenta e cinco|menos um quarto|e 45\b/i.test(clean)) return hora.replace(':00',':45');
       return hora;
     }
   }
@@ -1126,8 +1126,10 @@ function processarEstado(t, original) {
       return '✅ *Agendamento confirmado!*\n\n👤 ' + ag.nome + '\n📅 ' + ag.data + '\n🕐 ' + ag.hora + '\n💇 ' + ag.servico + '\n👩 ' + ag.profissional + '\n\nTe esperamos! Qualquer dúvida é só chamar. 😊';
     }
     if (/não|nao|cancela|errado|outro/i.test(t)) {
-      FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
-      return 'Tudo bem! 😊 Me diz o dia e horário que prefere que verifico as opções.';
+      // Mantém data, serviço e profissional — só limpa o horário
+      FB.hora = null;
+      FB.estado = 'escolhendo_hora';
+      return 'Tudo bem! 😊 Qual horário você prefere?\n\n' + respHorariosDia();
     }
     return 'Para confirmar, me responde *sim* ou *não*. 😊';
   }
