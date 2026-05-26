@@ -574,6 +574,7 @@ const SALAO = {
   endereco: 'Rua das Flores, 123 -- Centro',
   horario: 'Segunda a sexta: 9h às 19h | Sábado: 8h às 18h',
   whatsapp_humano: '(51) 99999-9999',
+  pagamento: 'Aceitamos Pix, cartão de débito, cartão de crédito (até 3x sem juros) e dinheiro.',
   profissionais: [
     { nome: 'Ana', especialidade: 'Coloração e mechas' },
     { nome: 'Camila', especialidade: 'Cortes e tratamentos capilares' },
@@ -756,6 +757,7 @@ const FB = {
   profissional: null,
   hora: null,
   data: null,
+  nomeCliente: null,
   agendamentos: [],
 };
 
@@ -841,23 +843,23 @@ function respHorariosDia() {
 }
 
 function horaDeExtenso(t) {
-  // Converte hora por extenso para formato HH:MM
+  // Horários de salão 9h-19h — ambiguidades (uma, duas, três, quatro, cinco, seis) = tarde
   const mapa = {
-    'uma':      '01:00', 'dois':    '02:00', 'tres':    '03:00', 'três':    '03:00',
-    'quatro':   '04:00', 'cinco':   '05:00', 'seis':    '06:00', 'sete':    '07:00',
-    'oito':     '08:00', 'nove':    '09:00', 'dez':     '10:00', 'onze':    '11:00',
-    'doze':     '12:00', 'treze':   '13:00', 'catorze': '14:00', 'quatorze':'14:00',
-    'quinze':   '15:00', 'dezesseis':'16:00','dezessete':'17:00','dezoito':  '18:00',
-    'dezenove': '19:00',
+    'uma': '13:00', 'duas': '14:00', 'dois': '14:00',
+    'tres': '15:00', 'três': '15:00',
+    'quatro': '16:00', 'cinco': '17:00', 'seis': '18:00',
+    'sete': '07:00', 'oito': '08:00', 'nove': '09:00',
+    'dez': '10:00', 'onze': '11:00', 'doze': '12:00',
+    'treze': '13:00', 'catorze': '14:00', 'quatorze': '14:00',
+    'quinze': '15:00', 'dezesseis': '16:00',
+    'dezessete': '17:00', 'dezoito': '18:00', 'dezenove': '19:00',
   };
-  // Verifica "nove horas", "às nove", "nove h", "as nove", só "nove" etc.
-  const clean = t.replace(/às|as|horas|hora|h/gi, '').trim();
-  // Verifica meia hora — "nove e meia" = 09:30
+  const clean = t.replace(/às|as|horas|hora|h/gi, '').trim();
   for (const [ext, hora] of Object.entries(mapa)) {
-    if (clean === ext || clean === ext + ' e meia' || new RegExp('\\b' + ext + '\\b').test(clean)) {
-      if (/e meia/i.test(clean)) {
-        return hora.replace(':00', ':30');
-      }
+    if (new RegExp('\b' + ext + '\b', 'i').test(clean)) {
+      if (/e meia/i.test(clean)) return hora.replace(':00', ':30');
+      if (/e quinze|e um quarto/i.test(clean)) return hora.replace(':00', ':15');
+      if (/e quarenta e cinco|menos um quarto/i.test(clean)) return hora.replace(':00', ':45');
       return hora;
     }
   }
@@ -873,6 +875,16 @@ function respostaFallback(texto) {
 }
 
 function processarEstado(t, original) {
+  // Estado: pedindo nome para finalizar agendamento
+  if (FB.estado === 'pedindo_nome') {
+    if (t.length < 2) return 'Me diz seu nome para confirmar o agendamento. 😊';
+    FB.nomeCliente = original.trim();
+    FB.agendamentos.push({ data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional, nome: FB.nomeCliente });
+    const ag = { data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional, nome: FB.nomeCliente };
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null; FB.nomeCliente = null;
+    return '✅ *Agendamento confirmado!*\n\n👤 ' + ag.nome + '\n📅 ' + ag.data + '\n🕐 ' + ag.hora + '\n💇 ' + ag.servico + '\n👩 ' + ag.profissional + '\n\nTe esperamos! Qualquer dúvida é só chamar. 😊';
+  }
+
   // Cancelamento
   if (/cancel/i.test(t)) {
     FB.estado = 'cancelando';
@@ -908,6 +920,11 @@ function processarEstado(t, original) {
     if (/manicure|pedicure|gel|fibra|unha/i.test(t)) return '💅 Unhas com a Julia:\n\n• Manicure: *R$ 35*\n• Pedicure: *R$ 40*\n• Gel/Fibra: *R$ 80-120*\n\nQuer agendar? 😊';
     if (/sobrancelha|cílio|estétic|limpeza/i.test(t)) return '✨ Estética com a Patricia:\n\n• Design de sobrancelha: *R$ 30*\n• Cílios fio a fio: *R$ 120-180*\n• Limpeza de pele: *R$ 90-130*\n\nQuer agendar? 😊';
     return 'Nossos preços principais:\n\n✂️ *Corte feminino:* R$ 60-90\n🎨 *Coloração:* R$ 120-180\n💅 *Manicure:* R$ 35 | *Pedicure:* R$ 40\n💇 *Progressiva:* R$ 180-280\n✨ *Sobrancelha:* R$ 30\n\nQuer saber sobre algum serviço específico? 😊';
+  }
+
+  // Formas de pagamento
+  if (/pagamento|pagar|paga|forma.*pag|como.*pago|aceita.*cartão|aceita.*pix|pix|cartão|credito|débito|dinheiro|espécie/i.test(t)) {
+    return '💳 Formas de pagamento:\n\n' + SALAO.pagamento + '\n\nQualquer dúvida é só perguntar! 😊';
   }
 
   // Endereço
@@ -1067,16 +1084,27 @@ function processarEstado(t, original) {
   // Confirmando
   if (FB.estado === 'confirmando') {
     if (/sim|ok|confirma|pode|isso|certo|tá bom|ta bom|claro|perfeito|ótimo|otimo/i.test(t)) {
-      FB.agendamentos.push({ data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional });
-      const ag = { data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional };
-      FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
-      return '✅ *Agendamento confirmado!*\n\n📅 ' + ag.data + '\n🕐 ' + ag.hora + '\n💇 ' + ag.servico + '\n👩 ' + ag.profissional + '\n\nTe esperamos! Qualquer dúvida é só chamar. 😊';
+      // Pede o nome se ainda não tem
+      if (!FB.nomeCliente) {
+        FB.estado = 'pedindo_nome';
+        return 'Ótimo! Para finalizar, qual é o seu nome? 😊';
+      }
+      FB.agendamentos.push({ data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional, nome: FB.nomeCliente });
+      const ag = { data: FB.data, hora: FB.hora, servico: FB.servico, profissional: FB.profissional, nome: FB.nomeCliente };
+      FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null; FB.nomeCliente = null;
+      return '✅ *Agendamento confirmado!*\n\n👤 ' + ag.nome + '\n📅 ' + ag.data + '\n🕐 ' + ag.hora + '\n💇 ' + ag.servico + '\n👩 ' + ag.profissional + '\n\nTe esperamos! Qualquer dúvida é só chamar. 😊';
     }
     if (/não|nao|cancela|errado|outro/i.test(t)) {
       FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
       return 'Tudo bem! 😊 Me diz o dia e horário que prefere que verifico as opções.';
     }
     return 'Para confirmar, me responde *sim* ou *não*. 😊';
+  }
+
+  // Reclamação, problema, dano → transferência IMEDIATA e prioritária
+  if (/reclama|problema|danific|dano|estrag|queimou|caiu.*cabelo|cabelo.*caiu|horrível|horrivel|pessim|insatisf|lament|erro|errou|culpa|responsab|indeniz|reembolso|devolv/i.test(t)) {
+    FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
+    return '😟 Lamento muito pelo ocorrido! Entendo que é uma situação urgente e vou te conectar imediatamente com nossa equipe.\n\n📱 *WhatsApp direto:* ' + SALAO.whatsapp_humano + '\n\nPor favor, entre em contato agora — eles vão te atender com prioridade e encontrar a melhor solução. 🙏';
   }
 
   // Transferência humana
