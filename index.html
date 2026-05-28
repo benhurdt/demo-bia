@@ -947,13 +947,34 @@ function processarEstado(t, original) {
   // Confirmação de cancelamento
   if (FB.estado === 'cancelando') {
     const num = parseInt(t);
-    if (!isNaN(num) && num >= 1 && num <= FB.agendamentos.length) {
+    // Só aceita número puro — ignora frases e perguntas
+    const ehNumero = /^\d+$/.test(t.trim());
+    if (ehNumero && !isNaN(num) && num >= 1 && num <= FB.agendamentos.length) {
       const ag = FB.agendamentos.splice(num - 1, 1)[0];
       FB.estado = 'inicio';
       return '✅ Agendamento cancelado!\n\n*' + ag.data + ' às ' + ag.hora + ' com ' + ag.profissional + '* foi removido.\n\nPosso te ajudar com mais alguma coisa? 😊';
     }
-    FB.estado = 'inicio';
-    return 'Agendamento cancelado. Posso te ajudar com mais alguma coisa? 😊';
+    if (ehNumero) {
+      // Número fora do range
+      return 'Número inválido. Digite o número do agendamento que deseja cancelar ou *não* para voltar. 😊';
+    }
+    // Não é número — responde a pergunta normalmente mas mantém estado de cancelamento
+    // Processa a mensagem como pergunta e depois lembra do cancelamento
+    if (/não|nao|voltar|desistir|esqueç/i.test(t)) {
+      FB.estado = 'inicio';
+      return 'Tudo bem! Cancelamento não realizado. Posso te ajudar com mais alguma coisa? 😊';
+    }
+    // Para qualquer outra mensagem, reapresenta as opções de cancelamento
+    const ags = FB.agendamentos.map((a,i) =>
+      (i+1) + '. ' + a.data + ' às ' + a.hora + ' com ' + a.profissional + ' — ' + a.servico
+    ).join('\n');
+    return 'Para cancelar, digite o número do agendamento. Se não quiser cancelar, escreva *não*.\n\n' + ags;
+  }
+
+  // Consulta de horários disponíveis
+  if (/quais.*horários|horários.*disponíveis|tem.*horário|horário.*tem|quando.*tem.*vaga|tem.*vaga/i.test(t)) {
+    const amanha = diaStr(1);
+    return '📅 Temos horários disponíveis nos próximos dias. Para qual dia você prefere?\n\n📅 *' + diaStr(1) + '*\n📅 *' + diaStr(2) + '*\n📅 *' + diaStr(3) + '*\n\nOu me diz outra data!';
   }
 
   // Horário de funcionamento
@@ -1000,14 +1021,14 @@ function processarEstado(t, original) {
   }
 
   // Verifica se pediu serviço fora do cardápio
-  if (FB.estado === 'inicio' || FB.estado === 'escolhendo_dia') {
+  // Só dispara quando há palavra de serviço explícita E não é reconhecida
+  if (FB.estado === 'inicio') {
     const tLow = t.toLowerCase();
-    // Só verifica se parece pedido de serviço mas nenhuma palavra válida foi encontrada
-    const pareceServico = /quero|fazer|agendar|marcar|gostaria|preciso/.test(tLow);
-    if (pareceServico && !detectarServico(tLow)) {
-      // Verifica se alguma palavra do pedido está nos serviços válidos
+    // Palavras que indicam pedido de serviço específico (não agendamento genérico)
+    const pedidoServico = /fazer\s+\w+|quero\s+(?:fazer|um|uma)\s+\w+|vocês\s+fazem|tem\s+(?:serviço|tratamento)|trabalham\s+com/.test(tLow);
+    if (pedidoServico && !detectarServico(tLow)) {
       const temValido = (SALAO.servicosValidos||[]).some(sv => tLow.includes(sv));
-      if (!temValido && tLow.length > 5) {
+      if (!temValido) {
         return 'Desculpe, não trabalhamos com este serviço. 😊\n\nNossos serviços disponíveis são:\n\n' + SALAO.servicos.split(',').map(s => '• ' + s.trim()).join('\n');
       }
     }
@@ -1193,6 +1214,17 @@ function processarEstado(t, original) {
   // Retoma fluxo se em estado intermediário
   if (FB.estado === 'escolhendo_dia') return 'Para qual dia você quer agendar? Pode ser amanhã, segunda, terça, quarta, quinta ou sexta. 😊';
   if (FB.estado === 'escolhendo_hora') return respHorariosDia();
+
+  // Pergunta sobre agendamentos existentes
+  if (/tenho.*horário|horário.*marcado|meu.*agendamento|agendamento.*meu|quando.*meu|confirmado/i.test(t)) {
+    if (FB.agendamentos.length > 0) {
+      const lista = FB.agendamentos.map((a,i) =>
+        '📅 ' + a.data + ' às *' + a.hora + '* — ' + a.servico + ' com ' + a.profissional
+      ).join('\n');
+      return 'Encontrei seus agendamentos nesta conversa:\n\n' + lista + '\n\nPosso te ajudar com mais alguma coisa? 😊';
+    }
+    return 'Não encontrei agendamentos registrados nesta conversa. Se você agendou anteriormente pelo WhatsApp, entre em contato conosco para verificar. 😊';
+  }
 
   return 'Entendi! 😊 Posso te ajudar com:\n\n📅 *Agendar* um horário\n💰 *Preços* dos serviços\n🕐 *Horário* de funcionamento\n📍 Nossa *localização*\n\nO que você quer fazer?';
 }
