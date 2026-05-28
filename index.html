@@ -574,6 +574,9 @@ const SALAO = {
   endereco: 'Rua das Flores, 123 -- Centro',
   horario: 'Segunda a sexta: 9h às 19h | Sábado: 8h às 18h',
   whatsapp_humano: '(51) 99999-9999',
+  servicosValidos: ['corte','color','tintura','pintur','mech','luzes','balayage',
+    'progressiva','botox','hidrat','escova','manicure','pedicure','gel',
+    'fibra','sobrancelha','cilio','limpeza','unhas','unha','cabelo'],
   pagamento: 'Aceitamos Pix, cartão de débito, cartão de crédito (até 3x sem juros) e dinheiro.',
   profissionais: [
     { nome: 'Ana', especialidade: 'Coloração e mechas' },
@@ -798,16 +801,19 @@ function resolverDiaNum(dia) {
 }
 
 function normalizarHora(t) {
-  // Aceita: "15:30", "15.30", "15h30", "15 30", "1530", "15e30"
-  // Retorna HH:MM ou null
-  const m1 = t.match(/^(\d{1,2})[:\.hH\s](\d{2})$/);
+  const limpo = t.trim();
+  // HH:MM, HH.MM, HHhMM, HH MM
+  const m1 = limpo.match(/^(\d{1,2})[:\\.hH\s](\d{2})$/);
   if (m1) return m1[1].padStart(2,'0') + ':' + m1[2];
-  // "15 e 30", "15 e meia"
-  const m2 = t.match(/^(\d{1,2})\s+e\s+(\d{2})$/);
+  // "15 e 30"
+  const m2 = limpo.match(/^(\d{1,2})\s+e\s+(\d{2})$/);
   if (m2) return m2[1].padStart(2,'0') + ':' + m2[2];
-  // Apenas número como "15" ou "9"
-  const m3 = t.match(/^(\d{1,2})$/);
-  if (m3) return m3[1].padStart(2,'0') + ':00';
+  // Número puro — trata como hora se entre 6 e 22
+  const m3 = limpo.match(/^(\d{1,2})$/);
+  if (m3) {
+    const h = parseInt(m3[1]);
+    if (h >= 6 && h <= 22) return m3[1].padStart(2,'0') + ':00';
+  }
   return null;
 }
 
@@ -993,6 +999,20 @@ function processarEstado(t, original) {
     }
   }
 
+  // Verifica se pediu serviço fora do cardápio
+  if (FB.estado === 'inicio' || FB.estado === 'escolhendo_dia') {
+    const tLow = t.toLowerCase();
+    // Só verifica se parece pedido de serviço mas nenhuma palavra válida foi encontrada
+    const pareceServico = /quero|fazer|agendar|marcar|gostaria|preciso/.test(tLow);
+    if (pareceServico && !detectarServico(tLow)) {
+      // Verifica se alguma palavra do pedido está nos serviços válidos
+      const temValido = (SALAO.servicosValidos||[]).some(sv => tLow.includes(sv));
+      if (!temValido && tLow.length > 5) {
+        return 'Desculpe, não trabalhamos com este serviço. 😊\n\nNossos serviços disponíveis são:\n\n' + SALAO.servicos.split(',').map(s => '• ' + s.trim()).join('\n');
+      }
+    }
+  }
+
   // "Sim" após oferta de serviço — inicia agendamento com serviço já definido
   if (/^(sim|s|yes|quero|pode|claro|vamos|ok)[\s!.]*$/i.test(t) && FB.servico && FB.estado === 'inicio') {
     FB.estado = 'escolhendo_dia';
@@ -1069,12 +1089,6 @@ function processarEstado(t, original) {
     if (/sábado|sabado/i.test(t)) { FB.data = proximoDia(6); return respHorariosDia(); }
     const dmMatch2 = t.match(/(\d{1,2})[\/\-](\d{1,2})/);
     if (dmMatch2) { FB.data = resolverDataDM(parseInt(dmMatch2[1]), parseInt(dmMatch2[2])); return respHorariosDia(); }
-    // Detecta pedido de dia isolado (ex: "27", "dia 27") — número grande (>8) é dia, não hora
-    const diaIsoladoMatch = t.match(/^(?:dia\s*)?(\d{1,2})\s*$/);
-    if (diaIsoladoMatch) {
-      const num = parseInt(diaIsoladoMatch[1]);
-      if (num > 8) { FB.data = resolverDiaNum(num); return respHorariosDia(); }
-    }
     // Detecta horário por extenso
     // Tenta todos os formatos de hora — extenso, numérico, variações
     const horaExtenso = horaDeExtenso(t);
