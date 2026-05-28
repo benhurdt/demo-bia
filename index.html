@@ -755,7 +755,7 @@ function temGroq() {
 
 // ── MÁQUINA DE ESTADOS DO FALLBACK ───────────────────────
 const FB = {
-  estado: 'inicio',
+  estado: 'inicio',  // inicio | escolhendo_dia | escolhendo_hora | pedindo_servico | pedindo_nome | confirmando | cancelando
   servico: null,
   profissional: null,
   hora: null,
@@ -801,11 +801,15 @@ function resolverDiaNum(dia) {
 }
 
 function normalizarHora(t) {
-  const limpo = t.trim();
-  // HH:MM, HH.MM, HHhMM, HH MM
+  // Normaliza o texto: vírgula → ponto, "quinse" → "quinze"
+  let limpo = t.trim()
+    .replace(/,/g, '.')
+    .replace(/quinse/gi, 'quinze')
+    .replace(/meia/gi, '30');
+  // HH:MM, HH.MM, HHhMM, HH MM, HH,MM
   const m1 = limpo.match(/^(\d{1,2})[:\\.hH\s](\d{2})$/);
   if (m1) return m1[1].padStart(2,'0') + ':' + m1[2];
-  // "15 e 30"
+  // "15 e 30" ou "15 e meia"
   const m2 = limpo.match(/^(\d{1,2})\s+e\s+(\d{2})$/);
   if (m2) return m2[1].padStart(2,'0') + ':' + m2[2];
   // Número puro — trata como hora se entre 6 e 22
@@ -866,6 +870,13 @@ function respHorariosDia() {
 }
 
 function horaDeExtenso(t) {
+  // Normaliza variações comuns
+  let limpo = t
+    .replace(/,/g, '.')
+    .replace(/quinse/gi, 'quinze')
+    .replace(/\bàs\b|\bas\b|\bhoras\b|\bhora\b|\bh\b/gi, '')
+    .trim();
+  // Mapa hora por extenso → HH:MM (ambiguidades resolvem para tarde em salão)
   const mapa = {
     'uma':'13:00','duas':'14:00','dois':'14:00',
     'tres':'15:00','três':'15:00',
@@ -876,12 +887,11 @@ function horaDeExtenso(t) {
     'quinze':'15:00','dezesseis':'16:00',
     'dezessete':'17:00','dezoito':'18:00','dezenove':'19:00',
   };
-  const clean = t.replace(/\bàs\b|\bas\b|\bhoras\b|\bhora\b|\bh\b/gi,'').trim();
-  for(const [ext,hora] of Object.entries(mapa)){
-    if(new RegExp('(?:^|\\s)' + ext + '(?:\\s|$|[,!?.])', 'i').test(clean)){
-      if(/e meia|e trinta|e 30\b/i.test(clean)) return hora.replace(':00',':30');
-      if(/e quinze|e um quarto|e 15\b/i.test(clean)) return hora.replace(':00',':15');
-      if(/e quarenta e cinco|menos um quarto|e 45\b/i.test(clean)) return hora.replace(':00',':45');
+  for(const [ext, hora] of Object.entries(mapa)){
+    if(new RegExp('(?:^|\\s)' + ext + '(?:\\s|$|[,!?.])', 'i').test(limpo)){
+      if(/e meia|e trinta|e 30\b/i.test(limpo)) return hora.replace(':00',':30');
+      if(/e quinze|e um quarto|e 15\b/i.test(limpo)) return hora.replace(':00',':15');
+      if(/e quarenta e cinco|menos um quarto|e 45\b/i.test(limpo)) return hora.replace(':00',':45');
       return hora;
     }
   }
@@ -911,7 +921,7 @@ function processarEstado(t, original) {
   }
 
   // Pedido de humano → transferência imediata independente do estado
-  if (/falar.*pessoa|falar.*alguém|falar.*alguem|falar.*humano|quero.*humano|quero.*pessoa|preciso.*falar|atendente|responsável|dona|gerente|me ajude|ajuda|socorro/i.test(t)) {
+  if (/falar.*pessoa|falar.*alguém|falar.*alguem|falar.*humano|quero.*humano|quero.*pessoa|preciso.*falar|atendente|responsável|dona|gerente|me ajude|ajuda|socorro|ser atendido|atendimento|alguém me|alguem me|falar com|conversar com|pessoa real|humano|funcionária|funcionaria|profissional disponível/i.test(t)) {
     FB.estado = 'inicio'; FB.servico = null; FB.profissional = null; FB.hora = null; FB.data = null;
     return 'Claro! Vou te conectar com nossa equipe agora. 😊\n\n📱 *WhatsApp:* ' + SALAO.whatsapp_humano + '\n\nEles atendem: ' + SALAO.horario + '\n\nFora do horário, deixe sua mensagem que retornam assim que possível!';
   }
@@ -923,6 +933,25 @@ function processarEstado(t, original) {
   }
 
   // ══ FIM DAS VERIFICAÇÕES DE PRIORIDADE MÁXIMA ══
+
+  // Estado: pedindo serviço quando não foi informado
+  if (FB.estado === 'pedindo_servico') {
+    const srv = detectarServico(t);
+    if (srv) {
+      FB.servico = srv;
+      FB.profissional = sugerirProfissional(srv);
+      FB.estado = 'confirmando';
+      return confirmarResumo();
+    }
+    // Tenta usar o texto diretamente como serviço
+    if (t.length > 2 && t.length < 40) {
+      FB.servico = original.trim();
+      FB.profissional = sugerirProfissional(FB.servico);
+      FB.estado = 'confirmando';
+      return confirmarResumo();
+    }
+    return 'Qual serviço você gostaria? Ex: corte, coloração, manicure, progressiva... 😊';
+  }
 
   // Estado: pedindo nome para finalizar agendamento
   if (FB.estado === 'pedindo_nome') {
@@ -1123,8 +1152,14 @@ function processarEstado(t, original) {
         return 'Esse horário não está disponível. Os horários livres são:\n\n' + lista + '\n\nQual desses você prefere? 😊';
       }
       FB.hora = horaValida;
-      if (!FB.servico) FB.servico = 'Serviço a confirmar';
-      if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico);
+      if (!FB.profissional) FB.profissional = sugerirProfissional(FB.servico||'');
+      // Se não há serviço definido, perguntar antes de confirmar
+      if (!FB.servico) {
+        FB.estado = 'pedindo_servico';
+        return 'Ótimo! Última pergunta: qual serviço você deseja?\n\n' +
+          SALAO.servicos.split(',').slice(0,8).map(s=>'• '+s.trim()).join('\n') +
+          '\n\nOu descreva o serviço.';
+      }
       FB.estado = 'confirmando';
       return confirmarResumo();
     }
